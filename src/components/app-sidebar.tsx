@@ -1,8 +1,10 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { NAV_SECTIONS } from "@/lib/nav";
+import { useUIStore } from "@/store/ui-store";
 
 export function AppSidebar() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const closeMobileNav = useUIStore((s) => s.closeMobileNav);
 
   const isActive = (to: string) =>
     to === "/" ? pathname === "/" : pathname === to || pathname.startsWith(to + "/");
@@ -35,6 +37,7 @@ export function AppSidebar() {
                 <Link
                   key={item.to}
                   to={item.to}
+                  onClick={closeMobileNav}
                   className={`mx-1.5 my-px flex cursor-pointer items-center gap-2.5 rounded-md px-3 py-2 text-[13.5px] font-normal transition-colors ${
                     active
                       ? "bg-iris/15 font-medium text-iris"
