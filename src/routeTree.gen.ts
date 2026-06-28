@@ -9,8 +9,68 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as PublishRouteImport } from './routes/publish'
+import { Route as ProjectsRouteImport } from './routes/projects'
+import { Route as EditorRouteImport } from './routes/editor'
+import { Route as DirectorRouteImport } from './routes/director'
+import { Route as DiffusionRouteImport } from './routes/diffusion'
+import { Route as CaptureRouteImport } from './routes/capture'
+import { Route as AudioRouteImport } from './routes/audio'
+import { Route as AssetsRouteImport } from './routes/assets'
+import { Route as AnalyticsRouteImport } from './routes/analytics'
 import { Route as IndexRouteImport } from './routes/index'
 
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PublishRoute = PublishRouteImport.update({
+  id: '/publish',
+  path: '/publish',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProjectsRoute = ProjectsRouteImport.update({
+  id: '/projects',
+  path: '/projects',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EditorRoute = EditorRouteImport.update({
+  id: '/editor',
+  path: '/editor',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DirectorRoute = DirectorRouteImport.update({
+  id: '/director',
+  path: '/director',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DiffusionRoute = DiffusionRouteImport.update({
+  id: '/diffusion',
+  path: '/diffusion',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CaptureRoute = CaptureRouteImport.update({
+  id: '/capture',
+  path: '/capture',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AudioRoute = AudioRouteImport.update({
+  id: '/audio',
+  path: '/audio',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AssetsRoute = AssetsRouteImport.update({
+  id: '/assets',
+  path: '/assets',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AnalyticsRoute = AnalyticsRouteImport.update({
+  id: '/analytics',
+  path: '/analytics',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -19,28 +79,172 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/analytics': typeof AnalyticsRoute
+  '/assets': typeof AssetsRoute
+  '/audio': typeof AudioRoute
+  '/capture': typeof CaptureRoute
+  '/diffusion': typeof DiffusionRoute
+  '/director': typeof DirectorRoute
+  '/editor': typeof EditorRoute
+  '/projects': typeof ProjectsRoute
+  '/publish': typeof PublishRoute
+  '/settings': typeof SettingsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/analytics': typeof AnalyticsRoute
+  '/assets': typeof AssetsRoute
+  '/audio': typeof AudioRoute
+  '/capture': typeof CaptureRoute
+  '/diffusion': typeof DiffusionRoute
+  '/director': typeof DirectorRoute
+  '/editor': typeof EditorRoute
+  '/projects': typeof ProjectsRoute
+  '/publish': typeof PublishRoute
+  '/settings': typeof SettingsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/analytics': typeof AnalyticsRoute
+  '/assets': typeof AssetsRoute
+  '/audio': typeof AudioRoute
+  '/capture': typeof CaptureRoute
+  '/diffusion': typeof DiffusionRoute
+  '/director': typeof DirectorRoute
+  '/editor': typeof EditorRoute
+  '/projects': typeof ProjectsRoute
+  '/publish': typeof PublishRoute
+  '/settings': typeof SettingsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/analytics'
+    | '/assets'
+    | '/audio'
+    | '/capture'
+    | '/diffusion'
+    | '/director'
+    | '/editor'
+    | '/projects'
+    | '/publish'
+    | '/settings'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/analytics'
+    | '/assets'
+    | '/audio'
+    | '/capture'
+    | '/diffusion'
+    | '/director'
+    | '/editor'
+    | '/projects'
+    | '/publish'
+    | '/settings'
+  id:
+    | '__root__'
+    | '/'
+    | '/analytics'
+    | '/assets'
+    | '/audio'
+    | '/capture'
+    | '/diffusion'
+    | '/director'
+    | '/editor'
+    | '/projects'
+    | '/publish'
+    | '/settings'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AnalyticsRoute: typeof AnalyticsRoute
+  AssetsRoute: typeof AssetsRoute
+  AudioRoute: typeof AudioRoute
+  CaptureRoute: typeof CaptureRoute
+  DiffusionRoute: typeof DiffusionRoute
+  DirectorRoute: typeof DirectorRoute
+  EditorRoute: typeof EditorRoute
+  ProjectsRoute: typeof ProjectsRoute
+  PublishRoute: typeof PublishRoute
+  SettingsRoute: typeof SettingsRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/publish': {
+      id: '/publish'
+      path: '/publish'
+      fullPath: '/publish'
+      preLoaderRoute: typeof PublishRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/projects': {
+      id: '/projects'
+      path: '/projects'
+      fullPath: '/projects'
+      preLoaderRoute: typeof ProjectsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/editor': {
+      id: '/editor'
+      path: '/editor'
+      fullPath: '/editor'
+      preLoaderRoute: typeof EditorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/director': {
+      id: '/director'
+      path: '/director'
+      fullPath: '/director'
+      preLoaderRoute: typeof DirectorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/diffusion': {
+      id: '/diffusion'
+      path: '/diffusion'
+      fullPath: '/diffusion'
+      preLoaderRoute: typeof DiffusionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/capture': {
+      id: '/capture'
+      path: '/capture'
+      fullPath: '/capture'
+      preLoaderRoute: typeof CaptureRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/audio': {
+      id: '/audio'
+      path: '/audio'
+      fullPath: '/audio'
+      preLoaderRoute: typeof AudioRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/assets': {
+      id: '/assets'
+      path: '/assets'
+      fullPath: '/assets'
+      preLoaderRoute: typeof AssetsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/analytics': {
+      id: '/analytics'
+      path: '/analytics'
+      fullPath: '/analytics'
+      preLoaderRoute: typeof AnalyticsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -53,6 +257,16 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AnalyticsRoute: AnalyticsRoute,
+  AssetsRoute: AssetsRoute,
+  AudioRoute: AudioRoute,
+  CaptureRoute: CaptureRoute,
+  DiffusionRoute: DiffusionRoute,
+  DirectorRoute: DirectorRoute,
+  EditorRoute: EditorRoute,
+  ProjectsRoute: ProjectsRoute,
+  PublishRoute: PublishRoute,
+  SettingsRoute: SettingsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
