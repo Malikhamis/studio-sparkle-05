@@ -135,16 +135,51 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <div className="grid h-screen w-screen grid-cols-[220px_1fr] grid-rows-[56px_1fr] overflow-hidden bg-void">
-        <div className="row-span-2">
+      <AppShell />
+    </QueryClientProvider>
+  );
+}
+
+function AppShell() {
+  const mobileNavOpen = useUIStore((s) => s.mobileNavOpen);
+  const closeMobileNav = useUIStore((s) => s.closeMobileNav);
+
+  return (
+    <div className="flex h-screen w-screen overflow-hidden bg-void">
+      {/* Desktop sidebar */}
+      <div className="hidden h-full shrink-0 md:block">
+        <AppSidebar />
+      </div>
+
+      {/* Mobile drawer */}
+      <div
+        className={`fixed inset-0 z-40 md:hidden ${mobileNavOpen ? "" : "pointer-events-none"}`}
+        aria-hidden={!mobileNavOpen}
+      >
+        <div
+          onClick={closeMobileNav}
+          className={`absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-200 ${
+            mobileNavOpen ? "opacity-100" : "opacity-0"
+          }`}
+        />
+        <div
+          className={`absolute inset-y-0 left-0 h-full shadow-2xl transition-transform duration-200 ease-out ${
+            mobileNavOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
+        >
           <AppSidebar />
         </div>
+      </div>
+
+      {/* Main column */}
+      <div className="flex min-w-0 flex-1 flex-col">
         <AppTopbar />
-        <main className="hk-scrollbar overflow-y-auto overflow-x-hidden bg-void p-6">
+        <main className="hk-scrollbar flex-1 overflow-y-auto overflow-x-hidden bg-void p-4 md:p-6">
           {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
           <Outlet />
         </main>
       </div>
-    </QueryClientProvider>
+    </div>
   );
 }
+
