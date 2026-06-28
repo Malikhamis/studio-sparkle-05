@@ -25,6 +25,7 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AppSidebar } from "@/components/app-sidebar";
 import { AppTopbar } from "@/components/app-topbar";
+import { useUIStore } from "@/store/ui-store";
 
 function NotFoundComponent() {
   return (
