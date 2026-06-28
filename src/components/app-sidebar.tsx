@@ -1,8 +1,10 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { NAV_SECTIONS } from "@/lib/nav";
+import { useUIStore } from "@/store/ui-store";
 
 export function AppSidebar() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const closeMobileNav = useUIStore((s) => s.closeMobileNav);
 
   const isActive = (to: string) =>
     to === "/" ? pathname === "/" : pathname === to || pathname.startsWith(to + "/");
