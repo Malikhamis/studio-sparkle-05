@@ -37,6 +37,7 @@ export function AppSidebar() {
                 <Link
                   key={item.to}
                   to={item.to}
+                  onClick={closeMobileNav}
                   className={`mx-1.5 my-px flex cursor-pointer items-center gap-2.5 rounded-md px-3 py-2 text-[13.5px] font-normal transition-colors ${
                     active
                       ? "bg-iris/15 font-medium text-iris"
