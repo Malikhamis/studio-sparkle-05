@@ -3,6 +3,7 @@ import {
   Clapperboard,
   FolderKanban,
   Library,
+  Globe2,
   Video,
   Sparkles,
   Mic,
@@ -12,6 +13,7 @@ import {
   Settings,
   type LucideIcon,
 } from "lucide-react";
+
 
 export type NavItem = {
   to: string;
@@ -31,10 +33,12 @@ export const NAV_SECTIONS: NavSection[] = [
     items: [
       { to: "/", label: "Dashboard", icon: Hexagon },
       { to: "/director", label: "miDirector", icon: Clapperboard, badge: 8 },
+      { to: "/universe", label: "miUniverse", icon: Globe2 },
       { to: "/projects", label: "Projects", icon: FolderKanban },
       { to: "/assets", label: "Asset Library", icon: Library },
     ],
   },
+
   {
     label: "Production",
     items: [
