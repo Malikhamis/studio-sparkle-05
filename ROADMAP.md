@@ -19,7 +19,7 @@ LLM/image/audio generation only.
 - 6 strategy presets, 6-step interview chat
 - Editable blueprint, scene CRUD, prompt templates, JSON export
 
-## 🟢 Phase 4 — miUniverse Spine (in progress)
+## ✅ Phase 4 — miUniverse Spine
 The persistent creative-OS layer every later module reads from.
 - Universe CRUD (data model is the spine — built first by user direction)
 - Characters · Locations · Props · Vehicles
@@ -41,7 +41,7 @@ The persistent creative-OS layer every later module reads from.
 - Character Library (cross-project)
 - Reference-image pinning for consistency
 
-## Phase 7 — miStory (Flagship)
+## 🟢 Phase 7 — miStory (Flagship) (in progress)
 - Input modes: Script → Story · Image → Story · Idea → Story
 - Story templates (Motivational, Kids, Horror, Doc, Sci-Fi, …)
 - Story styles (Comic, Anime, Pixar-style, Watercolor, …)
