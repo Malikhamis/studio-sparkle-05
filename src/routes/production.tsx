@@ -1,18 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import {
-  Cpu,
-  Clapperboard,
-  Sparkles,
-  Mic,
-  Scissors,
-  Rocket,
-  CheckCircle2,
-  Clock,
-  AlertCircle,
-  Loader2,
-  ChevronRight,
-  RefreshCw,
-} from "lucide-react";
+import { Cpu, Clapperboard, Sparkles, Mic, Scissors, Rocket, CircleCheck as CheckCircle2, Clock, CircleAlert as AlertCircle, Loader as Loader2, ChevronRight, RefreshCw } from "lucide-react";
 import { ModulePlaceholder } from "@/components/module-placeholder";
 
 export const Route = createFileRoute("/production")({

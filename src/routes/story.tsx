@@ -1,19 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import {
-  BookOpen,
-  Plus,
-  ChevronRight,
-  ChevronDown,
-  Trash2,
-  Pencil,
-  Save,
-  X,
-  Globe2,
-  Clock,
-  Film,
-  Layers,
-} from "lucide-react";
+import { BookOpen, Plus, ChevronRight, ChevronDown, Trash2, Pencil, Save, X, Globe as Globe2, Clock, Film, Layers } from "lucide-react";
 import {
   useStoryStore,
   STORY_TEMPLATES,
