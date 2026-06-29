@@ -47,6 +47,32 @@ export type Scene = {
   status: "pending" | "generating" | "complete" | "failed";
 };
 
+export type StoryMemory = {
+  /** Characters mentioned in this episode */
+  characters: string[];
+  /** Locations used */
+  locations: string[];
+  /** Key props/items */
+  props: string[];
+  /** Emotional arc tags */
+  emotions: string[];
+  /** Time of day consistency */
+  timeOfDay?: string;
+  /** Weather/atmosphere */
+  weather?: string;
+  /** Continuity notes */
+  notes: string[];
+};
+
+export type InputMode = "script" | "image" | "idea";
+
+export type StoryInput = {
+  mode: InputMode;
+  content: string;
+  imageUrl?: string;
+  blueprintId?: string;
+};
+
 export type Episode = {
   id: string;
   number: number;
@@ -56,6 +82,10 @@ export type Episode = {
   scenes: Scene[];
   duration: number; // total seconds (sum of scenes)
   blueprintId?: string; // link to miDirector blueprint
+  /** Story memory for continuity tracking */
+  memory: StoryMemory;
+  /** Input source that generated this episode */
+  inputSource?: StoryInput;
   createdAt: number;
   updatedAt: number;
 };
@@ -155,6 +185,13 @@ type State = {
   reorderScenes: (seriesId: string, seasonId: string, episodeId: string, sceneIds: string[]) => void;
 
   recalculateEpisodeDuration: (seriesId: string, seasonId: string, episodeId: string) => void;
+
+  updateMemory: (
+    seriesId: string,
+    seasonId: string,
+    episodeId: string,
+    patch: Partial<StoryMemory>
+  ) => void;
 };
 
 const seed = (): Series[] => {
@@ -182,6 +219,15 @@ const seed = (): Series[] => {
               status: "scripted",
               scenes: [],
               duration: 0,
+              memory: {
+                characters: ["Iris Vale", "Commander Chen"],
+                locations: ["Listening Post", "Bridge"],
+                props: ["Signal decoder", "Old radio"],
+                emotions: ["wonder", "tension", "hope"],
+                timeOfDay: "blue hour",
+                weather: "clear, windy",
+                notes: ["Establish Iris as quiet, observant", "Signal first heard at 12.3kHz"],
+              },
               createdAt: now,
               updatedAt: now,
             },
@@ -315,6 +361,13 @@ export const useStoryStore = create<State>()(
           status: "concept",
           scenes: [],
           duration: 0,
+          memory: {
+            characters: [],
+            locations: [],
+            props: [],
+            emotions: [],
+            notes: [],
+          },
           createdAt: now,
           updatedAt: now,
         };
@@ -553,6 +606,33 @@ export const useStoryStore = create<State>()(
                         }
                       : sn
                   ),
+                }
+              : s
+          ),
+        });
+      },
+
+      updateMemory: (seriesId, seasonId, episodeId, patch) => {
+        const now = Date.now();
+        set({
+          series: get().series.map((s) =>
+            s.id === seriesId
+              ? {
+                  ...s,
+                  seasons: s.seasons.map((sn) =>
+                    sn.id === seasonId
+                      ? {
+                          ...sn,
+                          episodes: sn.episodes.map((ep) =>
+                            ep.id === episodeId
+                              ? { ...ep, memory: { ...ep.memory, ...patch }, updatedAt: now }
+                              : ep
+                          ),
+                          updatedAt: now,
+                        }
+                      : sn
+                  ),
+                  updatedAt: now,
                 }
               : s
           ),

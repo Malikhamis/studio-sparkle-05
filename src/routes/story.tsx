@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { BookOpen, Plus, ChevronRight, ChevronDown, Trash2, Pencil, Save, X, Globe as Globe2, Clock, Film, Layers } from "lucide-react";
+import { BookOpen, Plus, ChevronRight, ChevronDown, Trash2, Pencil, Save, X, Globe as Globe2, Clock, Film, Layers, Users, MapPin, Package, Heart, Sun, Cloud, StickyNote, MemoryStick, FileText, Image, Lightbulb, Wand as Wand2 } from "lucide-react";
 import {
   useStoryStore,
   STORY_TEMPLATES,
@@ -9,9 +9,11 @@ import {
   type Season,
   type Episode,
   type Scene,
+  type StoryMemory,
   type StoryTemplate,
   type StoryStyle,
   type EpisodeStatus,
+  type InputMode,
 } from "@/store/story-store";
 import { useUniverseStore } from "@/store/universe-store";
 import { Button } from "@/components/ui/button";
@@ -81,6 +83,7 @@ function StoryPage() {
     addScene,
     updateScene,
     removeScene,
+    updateMemory,
   } = useStoryStore();
 
   const universes = useUniverseStore((s) => s.universes);
@@ -193,13 +196,10 @@ function StoryPage() {
                   season={sn}
                  isActive={sn.id === activeSeason?.id}
                   activeEpisodeId={activeEpisode?.id}
+                  seriesId={activeSeries.id}
                   onSelectSeason={() => setActiveSeason(sn.id)}
                   onSelectEpisode={(epId) => setActiveEpisode(epId)}
-                  onAddEpisode={() =>
-                    createEpisode(activeSeries.id, sn.id, {
-                      title: `Episode ${sn.episodes.length + 1}`,
-                    })
-                  }
+                  onCreateEpisode={(input) => createEpisode(activeSeries.id, sn.id, input)}
                   onDeleteSeason={() => {
                     if (confirm(`Delete "${sn.title}"?`)) deleteSeason(activeSeries.id, sn.id);
                   }}
@@ -224,7 +224,10 @@ function StoryPage() {
                 onRemoveScene={(sceneId) =>
                   removeScene(activeSeries!.id, activeSeason!.id, activeEpisode.id, sceneId)
                 }
-              />
+                onUpdateMemory={(patch) =>
+                  updateMemory(activeSeries!.id, activeSeason!.id, activeEpisode.id, patch)
+                }
+            />
             ) : (
               <div className="flex flex-1 items-center justify-center gap-3 p-6 text-center">
                 <div>
@@ -246,22 +249,25 @@ function SeasonNode({
   season,
   isActive,
   activeEpisodeId,
+  seriesId,
   onSelectSeason,
   onSelectEpisode,
-  onAddEpisode,
+  onCreateEpisode,
   onDeleteSeason,
   onDeleteEpisode,
 }: {
   season: Season;
   isActive: boolean;
   activeEpisodeId?: string;
+  seriesId: string;
   onSelectSeason: () => void;
   onSelectEpisode: (epId: string) => void;
-  onAddEpisode: () => void;
+  onCreateEpisode: (input: { title: string; logline?: string }) => void;
   onDeleteSeason: () => void;
   onDeleteEpisode: (epId: string) => void;
 }) {
   const [expanded, setExpanded] = useState(isActive);
+  const [showNewEpisode, setShowNewEpisode] = useState(false);
   return (
     <div className="mb-1">
       <button
@@ -334,13 +340,24 @@ function SeasonNode({
             );
           })}
           <button
-            onClick={onAddEpisode}
+            onClick={() => setShowNewEpisode(true)}
             className="flex w-full items-center gap-1.5 rounded-md px-2 py-1.5 text-[11px] text-text-dim hover:bg-surface hover:text-text-primary"
           >
             <Plus className="h-3 w-3" />
             Add episode
           </button>
         </div>
+      )}
+
+      {showNewEpisode && (
+        <NewEpisodeDialog
+          episodeCount={season.episodes.length + 1}
+          onConfirm={(input) => {
+            onCreateEpisode(input);
+            setShowNewEpisode(false);
+          }}
+          onClose={() => setShowNewEpisode(false)}
+        />
       )}
     </div>
   );
@@ -352,15 +369,18 @@ function EpisodeDetail({
   onAddScene,
   onUpdateScene,
   onRemoveScene,
+  onUpdateMemory,
 }: {
   episode: Episode;
   universe?: { id: string; name: string };
   onAddScene: () => void;
   onUpdateScene: (sceneId: string, patch: Partial<Scene>) => void;
   onRemoveScene: (sceneId: string) => void;
+  onUpdateMemory: (patch: Partial<StoryMemory>) => void;
 }) {
   const status = STATUS_STYLES[episode.status];
   const totalSec = episode.scenes.reduce((sum, sc) => sum + sc.duration, 0);
+  const [showMemory, setShowMemory] = useState(false);
 
   return (
     <>
@@ -375,6 +395,17 @@ function EpisodeDetail({
             </p>
           </div>
           <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowMemory(!showMemory)}
+              className={`flex h-7 items-center gap-1.5 rounded-md border px-2 text-[11px] font-medium transition-colors ${
+                showMemory
+                  ? "border-iris/50 bg-iris/15 text-iris"
+                  : "border-white/10 text-text-dim hover:border-white/20 hover:text-text-secondary"
+              }`}
+            >
+              <MemoryStick className="h-3 w-3" />
+              Memory
+            </button>
             <span
               className="rounded-full px-2 py-0.5 text-[10.5px] font-medium"
               style={{
@@ -403,6 +434,14 @@ function EpisodeDetail({
           )}
         </div>
       </div>
+
+      {/* Story Memory Panel */}
+      {showMemory && (
+        <StoryMemoryPanel
+          memory={episode.memory}
+          onUpdate={onUpdateMemory}
+        />
+      )}
 
       <div className="flex-1 overflow-y-auto p-4">
         <div className="space-y-3">
@@ -436,6 +475,172 @@ function EpisodeDetail({
         </button>
       </div>
     </>
+  );
+}
+
+function StoryMemoryPanel({
+  memory,
+  onUpdate,
+}: {
+  memory: StoryMemory;
+  onUpdate: (patch: Partial<StoryMemory>) => void;
+}) {
+  const addItem = (key: keyof Pick<StoryMemory, "characters" | "locations" | "props" | "emotions" | "notes">, value: string) => {
+    const arr = memory[key];
+    if (!value.trim() || arr.includes(value.trim())) return;
+    onUpdate({ [key]: [...arr, value.trim()] });
+  };
+
+  const removeItem = (key: keyof Pick<StoryMemory, "characters" | "locations" | "props" | "emotions" | "notes">, value: string) => {
+    onUpdate({ [key]: memory[key].filter((v) => v !== value) });
+  };
+
+  return (
+    <div className="border-b border-white/[0.06] bg-base/50 p-3">
+      <div className="grid grid-cols-2 gap-3">
+        <MemoryField
+          label="Characters"
+          icon={Users}
+          values={memory.characters}
+          placeholder="Add character..."
+          onAdd={(v) => addItem("characters", v)}
+          onRemove={(v) => removeItem("characters", v)}
+        />
+        <MemoryField
+          label="Locations"
+          icon={MapPin}
+          values={memory.locations}
+          placeholder="Add location..."
+          onAdd={(v) => addItem("locations", v)}
+          onRemove={(v) => removeItem("locations", v)}
+        />
+        <MemoryField
+          label="Props"
+          icon={Package}
+          values={memory.props}
+          placeholder="Add prop..."
+          onAdd={(v) => addItem("props", v)}
+          onRemove={(v) => removeItem("props", v)}
+        />
+        <MemoryField
+          label="Emotions"
+          icon={Heart}
+          values={memory.emotions}
+          placeholder="Add emotion..."
+          onAdd={(v) => addItem("emotions", v)}
+          onRemove={(v) => removeItem("emotions", v)}
+        />
+      </div>
+
+      <div className="mt-3 grid grid-cols-2 gap-3">
+        <div className="flex items-center gap-2">
+          <Sun className="h-3.5 w-3.5 text-text-dim" />
+          <Input
+            value={memory.timeOfDay ?? ""}
+            onChange={(e) => onUpdate({ timeOfDay: e.target.value })}
+            placeholder="Time of day..."
+            className="h-7 text-[12px]"
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          <Cloud className="h-3.5 w-3.5 text-text-dim" />
+          <Input
+            value={memory.weather ?? ""}
+            onChange={(e) => onUpdate({ weather: e.target.value })}
+            placeholder="Weather..."
+            className="h-7 text-[12px]"
+          />
+        </div>
+      </div>
+
+      <div className="mt-3">
+        <div className="flex items-center gap-1.5 mb-1">
+          <StickyNote className="h-3.5 w-3.5 text-text-dim" />
+          <span className="text-[10px] font-medium uppercase tracking-wider text-text-dim">
+            Continuity Notes
+          </span>
+        </div>
+        <div className="flex flex-wrap gap-1.5">
+          {memory.notes.map((note, i) => (
+            <span
+              key={i}
+              className="group inline-flex items-center gap-1 rounded border border-white/10 bg-base px-2 py-0.5 text-[11px] text-text-secondary"
+            >
+              {note}
+              <button
+                onClick={() => removeItem("notes", note)}
+                className="ml-0.5 text-text-dim hover:text-[#FF5370]"
+              >
+                <X className="h-2.5 w-2.5" />
+              </button>
+            </span>
+          ))}
+        </div>
+        <Input
+          placeholder="Add continuity note..."
+          className="mt-1.5 h-7 text-[12px]"
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              addItem("notes", (e.target as HTMLInputElement).value);
+              (e.target as HTMLInputElement).value = "";
+            }
+          }}
+        />
+      </div>
+    </div>
+  );
+}
+
+function MemoryField({
+  label,
+  icon: Icon,
+  values,
+  placeholder,
+  onAdd,
+  onRemove,
+}: {
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  values: string[];
+  placeholder: string;
+  onAdd: (value: string) => void;
+  onRemove: (value: string) => void;
+}) {
+  return (
+    <div>
+      <div className="flex items-center gap-1.5 mb-1">
+        <Icon className="h-3.5 w-3.5 text-text-dim" />
+        <span className="text-[10px] font-medium uppercase tracking-wider text-text-dim">
+          {label}
+        </span>
+      </div>
+      <div className="flex flex-wrap gap-1">
+        {values.map((v, i) => (
+          <span
+            key={i}
+            className="group inline-flex items-center gap-1 rounded border border-white/10 bg-base px-2 py-0.5 text-[11px] text-text-secondary"
+          >
+            {v}
+            <button
+              onClick={() => onRemove(v)}
+              className="ml-0.5 text-text-dim hover:text-[#FF5370]"
+            >
+              <X className="h-2.5 w-2.5" />
+            </button>
+          </span>
+        ))}
+        <input
+          placeholder={values.length === 0 ? placeholder : "+"}
+          className="w-16 rounded border border-white/10 bg-base px-1.5 py-0.5 text-[11px] text-text-primary placeholder:text-text-dim/50 focus:border-iris focus:outline-none"
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              onAdd((e.target as HTMLInputElement).value);
+              (e.target as HTMLInputElement).value = "";
+            }
+          }}
+        />
+      </div>
+    </div>
   );
 }
 
@@ -670,6 +875,146 @@ function NewSeriesButton({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+const INPUT_MODES: { id: InputMode; label: string; icon: React.ComponentType<{ className?: string }>; description: string }[] = [
+  { id: "script", label: "Script", icon: FileText, description: "Paste or write a script to generate scenes from" },
+  { id: "image", label: "Image", icon: Image, description: "Upload an image to inspire the story" },
+  { id: "idea", label: "Idea", icon: Lightbulb, description: "Describe your concept and let AI expand it" },
+];
+
+function NewEpisodeDialog({
+  episodeCount,
+  onConfirm,
+  onClose,
+}: {
+  episodeCount: number;
+  onConfirm: (input: { title: string; logline?: string }) => void;
+  onClose: () => void;
+}) {
+  const [mode, setMode] = useState<InputMode>("idea");
+  const [title, setTitle] = useState(`Episode ${episodeCount}`);
+  const [logline, setLogline] = useState("");
+  const [content, setContent] = useState("");
+
+  const handleCreate = () => {
+    onConfirm({ title, logline });
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60" onClick={onClose}>
+      <div
+        className="w-full max-w-md rounded-xl border border-white/[0.08] bg-base p-4 shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="mb-4 flex items-center justify-between">
+          <h3 className="text-[15px] font-semibold text-text-primary">New episode</h3>
+          <button onClick={onClose} className="text-text-dim hover:text-text-primary">
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
+        <div className="space-y-3">
+          <div className="space-y-1.5">
+            <Label className="text-[11px]">Input mode</Label>
+            <div className="grid grid-cols-3 gap-2">
+              {INPUT_MODES.map((m) => {
+                const Icon = m.icon;
+                const active = mode === m.id;
+                return (
+                  <button
+                    key={m.id}
+                    onClick={() => setMode(m.id)}
+                    className={`flex flex-col items-center gap-1.5 rounded-lg border p-3 transition-colors ${
+                      active
+                        ? "border-iris/50 bg-iris/10 text-iris"
+                        : "border-white/10 text-text-secondary hover:border-white/20 hover:bg-elevated"
+                    }`}
+                  >
+                    <Icon className="h-4 w-4" />
+                    <span className="text-[11px] font-medium">{m.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+            <p className="text-[10.5px] text-text-dim">
+              {INPUT_MODES.find((m) => m.id === mode)?.description}
+            </p>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label className="text-[11px]">Title</Label>
+            <Input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              className="h-8 text-[13px]"
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label className="text-[11px]">Logline</Label>
+            <Textarea
+              value={logline}
+              onChange={(e) => setLogline(e.target.value)}
+              rows={2}
+              placeholder="Brief summary of this episode..."
+              className="text-[12px]"
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label className="text-[11px]">
+              {mode === "script" && "Script content"}
+              {mode === "image" && "Image URL (optional)"}
+              {mode === "idea" && "Your idea"}
+            </Label>
+            {mode === "script" && (
+              <Textarea
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                rows={4}
+                placeholder="Paste your script here..."
+                className="font-mono text-[11px]"
+              />
+            )}
+            {mode === "image" && (
+              <Input
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                placeholder="https://..."
+                className="h-8 text-[12px]"
+              />
+            )}
+            {mode === "idea" && (
+              <Textarea
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                rows={3}
+                placeholder="Describe your episode concept..."
+                className="text-[12px]"
+              />
+            )}
+          </div>
+        </div>
+
+        <div className="mt-4 flex items-center justify-end gap-2">
+          <Button size="sm" variant="ghost" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button
+            size="sm"
+            onClick={handleCreate}
+            disabled={!title.trim()}
+            style={{ background: "var(--gradient-iris)" }}
+            className="text-white"
+          >
+            <Wand2 className="h-3 w-3" />
+            Create episode
+          </Button>
+        </div>
+      </div>
+    </div>
   );
 }
 

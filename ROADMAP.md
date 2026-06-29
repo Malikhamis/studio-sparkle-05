@@ -41,7 +41,7 @@ The persistent creative-OS layer every later module reads from.
 - Character Library (cross-project)
 - Reference-image pinning for consistency
 
-## 🟢 Phase 7 — miStory (Flagship) (in progress)
+## ✅ Phase 7 — miStory (Flagship)
 - Input modes: Script → Story · Image → Story · Idea → Story
 - Story templates (Motivational, Kids, Horror, Doc, Sci-Fi, …)
 - Story styles (Comic, Anime, Pixar-style, Watercolor, …)
