@@ -5,7 +5,6 @@ import {
   Library,
   Globe2,
   BookOpen,
-  LayoutGrid,
   Cpu,
   Rocket,
   BarChart3,
@@ -32,7 +31,6 @@ export const NAV_SECTIONS: NavSection[] = [
     items: [
       { to: "/director", label: "miDirector", icon: Clapperboard },
       { to: "/story", label: "miStory", icon: BookOpen },
-      { to: "/storyboard", label: "Storyboard", icon: LayoutGrid },
     ],
   },
   {
