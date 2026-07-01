@@ -48,7 +48,7 @@ The persistent creative-OS layer every later module reads from.
 - Scene generator (single/multi/regen/merge/split)
 - Story Memory continuity tracking
 
-## Phase 8 — Storyboard
+## ✅ Phase 8 — Storyboard
 - Visual storyboard from blueprint scenes
 - Camera angle / movement / shot duration / notes
 - Inline regenerate per panel

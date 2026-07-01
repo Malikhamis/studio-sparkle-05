@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as UniverseRouteImport } from './routes/universe'
+import { Route as StoryboardRouteImport } from './routes/storyboard'
 import { Route as StoryRouteImport } from './routes/story'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as PublishRouteImport } from './routes/publish'
@@ -23,6 +24,11 @@ import { Route as IndexRouteImport } from './routes/index'
 const UniverseRoute = UniverseRouteImport.update({
   id: '/universe',
   path: '/universe',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StoryboardRoute = StoryboardRouteImport.update({
+  id: '/storyboard',
+  path: '/storyboard',
   getParentRoute: () => rootRouteImport,
 } as any)
 const StoryRoute = StoryRouteImport.update({
@@ -81,6 +87,7 @@ export interface FileRoutesByFullPath {
   '/publish': typeof PublishRoute
   '/settings': typeof SettingsRoute
   '/story': typeof StoryRoute
+  '/storyboard': typeof StoryboardRoute
   '/universe': typeof UniverseRoute
 }
 export interface FileRoutesByTo {
@@ -93,6 +100,7 @@ export interface FileRoutesByTo {
   '/publish': typeof PublishRoute
   '/settings': typeof SettingsRoute
   '/story': typeof StoryRoute
+  '/storyboard': typeof StoryboardRoute
   '/universe': typeof UniverseRoute
 }
 export interface FileRoutesById {
@@ -106,6 +114,7 @@ export interface FileRoutesById {
   '/publish': typeof PublishRoute
   '/settings': typeof SettingsRoute
   '/story': typeof StoryRoute
+  '/storyboard': typeof StoryboardRoute
   '/universe': typeof UniverseRoute
 }
 export interface FileRouteTypes {
@@ -120,6 +129,7 @@ export interface FileRouteTypes {
     | '/publish'
     | '/settings'
     | '/story'
+    | '/storyboard'
     | '/universe'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -132,6 +142,7 @@ export interface FileRouteTypes {
     | '/publish'
     | '/settings'
     | '/story'
+    | '/storyboard'
     | '/universe'
   id:
     | '__root__'
@@ -144,6 +155,7 @@ export interface FileRouteTypes {
     | '/publish'
     | '/settings'
     | '/story'
+    | '/storyboard'
     | '/universe'
   fileRoutesById: FileRoutesById
 }
@@ -157,6 +169,7 @@ export interface RootRouteChildren {
   PublishRoute: typeof PublishRoute
   SettingsRoute: typeof SettingsRoute
   StoryRoute: typeof StoryRoute
+  StoryboardRoute: typeof StoryboardRoute
   UniverseRoute: typeof UniverseRoute
 }
 
@@ -167,6 +180,13 @@ declare module '@tanstack/react-router' {
       path: '/universe'
       fullPath: '/universe'
       preLoaderRoute: typeof UniverseRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/storyboard': {
+      id: '/storyboard'
+      path: '/storyboard'
+      fullPath: '/storyboard'
+      preLoaderRoute: typeof StoryboardRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/story': {
@@ -245,6 +265,7 @@ const rootRouteChildren: RootRouteChildren = {
   PublishRoute: PublishRoute,
   SettingsRoute: SettingsRoute,
   StoryRoute: StoryRoute,
+  StoryboardRoute: StoryboardRoute,
   UniverseRoute: UniverseRoute,
 }
 export const routeTree = rootRouteImport
