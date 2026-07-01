@@ -5,6 +5,8 @@ import {
   Library,
   Globe2,
   BookOpen,
+  LayoutGrid,
+  AudioWaveform,
   Cpu,
   Rocket,
   BarChart3,
@@ -31,11 +33,13 @@ export const NAV_SECTIONS: NavSection[] = [
     items: [
       { to: "/director", label: "miDirector", icon: Clapperboard },
       { to: "/story", label: "miStory", icon: BookOpen },
+      { to: "/storyboard", label: "Storyboard", icon: LayoutGrid },
     ],
   },
   {
     label: "Produce",
     items: [
+      { to: "/audio", label: "Audio Studio", icon: AudioWaveform },
       { to: "/production", label: "Pipeline", icon: Cpu },
     ],
   },

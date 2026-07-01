@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Cpu, Clapperboard, Sparkles, Mic, Scissors, Rocket, CircleCheck as CheckCircle2, Clock, CircleAlert as AlertCircle, Loader as Loader2, ChevronRight, RefreshCw } from "lucide-react";
-import { ModulePlaceholder } from "@/components/module-placeholder";
+import { useAudioStore } from "@/store/audio-store";
 
 export const Route = createFileRoute("/production")({
   head: () => ({
@@ -85,13 +85,37 @@ const STAGES: PipelineStage[] = [
 ];
 
 function ProductionPage() {
-  const activeIndex = STAGES.findIndex((s) => s.status === "running");
+  const audioProjects = useAudioStore((s) => s.projects);
+
+  const audioStage = STAGES.find((s) => s.id === "audio")!;
+  const audioItems: { label: string; status: string }[] = [];
+  if (audioProjects.length > 0) {
+    const p = audioProjects[0];
+    const narrationComplete = p.narrations.filter((n) => n.status === "complete").length;
+    const musicComplete = p.music.filter((m) => m.status === "complete").length;
+    const sfxComplete = p.sfx.filter((s) => s.status === "complete").length;
+    audioItems.push({ label: `Narration ${narrationComplete}/${p.narrations.length}`, status: narrationComplete === p.narrations.length && p.narrations.length > 0 ? "complete" : "pending" });
+    audioItems.push({ label: `Music ${musicComplete}/${p.music.length}`, status: musicComplete === p.music.length && p.music.length > 0 ? "complete" : "pending" });
+    audioItems.push({ label: `SFX ${sfxComplete}/${p.sfx.length}`, status: sfxComplete === p.sfx.length && p.sfx.length > 0 ? "complete" : "pending" });
+  }
+  const audioProgress = audioItems.length > 0
+    ? Math.round((audioItems.filter((i) => i.status === "complete").length / audioItems.length) * 100)
+    : 0;
+  const audioStatus = audioProgress === 100 ? "complete" : audioProgress > 0 ? "running" : "pending";
+
+  const stages = STAGES.map((s) =>
+    s.id === "audio"
+      ? { ...s, items: audioItems, progress: audioProgress, status: audioStatus as "pending" | "running" | "complete" | "failed" }
+      : s
+  );
+
+  const activeIndex = stages.findIndex((s) => s.status === "running");
   const overallProgress = Math.round(
-    STAGES.reduce((sum, s) => {
+    stages.reduce((sum, s) => {
       if (s.status === "complete") return sum + 100;
       if (s.status === "running" && s.progress) return sum + s.progress;
       return sum;
-    }, 0) / STAGES.length
+    }, 0) / stages.length
   );
 
   return (
@@ -146,7 +170,7 @@ function ProductionPage() {
       {/* Pipeline stages */}
       <div className="hk-card overflow-hidden">
         <div className="divide-y divide-white/[0.06]">
-          {STAGES.map((stage, i) => (
+          {stages.map((stage, i) => (
             <StageCard
               key={stage.id}
               stage={stage}

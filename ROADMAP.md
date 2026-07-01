@@ -48,12 +48,12 @@ The persistent creative-OS layer every later module reads from.
 - Scene generator (single/multi/regen/merge/split)
 - Story Memory continuity tracking
 
-## Phase 8 — Storyboard
+## ✅ Phase 8 — Storyboard
 - Visual storyboard from blueprint scenes
 - Camera angle / movement / shot duration / notes
 - Inline regenerate per panel
 
-## Phase 9 — Motion & Voice & Music
+## ✅ Phase 9 — Motion & Voice & Music
 - Motion generator (zoom, pan, parallax, push/pull, blur)
 - Smart Narration (TTS via `openai/gpt-4o-mini-tts`) with emotion/speed/pitch
 - AI Music selector

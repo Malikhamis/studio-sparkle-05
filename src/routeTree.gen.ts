@@ -10,12 +10,14 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as UniverseRouteImport } from './routes/universe'
+import { Route as StoryboardRouteImport } from './routes/storyboard'
 import { Route as StoryRouteImport } from './routes/story'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as PublishRouteImport } from './routes/publish'
 import { Route as ProjectsRouteImport } from './routes/projects'
 import { Route as ProductionRouteImport } from './routes/production'
 import { Route as DirectorRouteImport } from './routes/director'
+import { Route as AudioRouteImport } from './routes/audio'
 import { Route as AssetsRouteImport } from './routes/assets'
 import { Route as AnalyticsRouteImport } from './routes/analytics'
 import { Route as IndexRouteImport } from './routes/index'
@@ -23,6 +25,11 @@ import { Route as IndexRouteImport } from './routes/index'
 const UniverseRoute = UniverseRouteImport.update({
   id: '/universe',
   path: '/universe',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StoryboardRoute = StoryboardRouteImport.update({
+  id: '/storyboard',
+  path: '/storyboard',
   getParentRoute: () => rootRouteImport,
 } as any)
 const StoryRoute = StoryRouteImport.update({
@@ -55,6 +62,11 @@ const DirectorRoute = DirectorRouteImport.update({
   path: '/director',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AudioRoute = AudioRouteImport.update({
+  id: '/audio',
+  path: '/audio',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AssetsRoute = AssetsRouteImport.update({
   id: '/assets',
   path: '/assets',
@@ -75,24 +87,28 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/analytics': typeof AnalyticsRoute
   '/assets': typeof AssetsRoute
+  '/audio': typeof AudioRoute
   '/director': typeof DirectorRoute
   '/production': typeof ProductionRoute
   '/projects': typeof ProjectsRoute
   '/publish': typeof PublishRoute
   '/settings': typeof SettingsRoute
   '/story': typeof StoryRoute
+  '/storyboard': typeof StoryboardRoute
   '/universe': typeof UniverseRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/analytics': typeof AnalyticsRoute
   '/assets': typeof AssetsRoute
+  '/audio': typeof AudioRoute
   '/director': typeof DirectorRoute
   '/production': typeof ProductionRoute
   '/projects': typeof ProjectsRoute
   '/publish': typeof PublishRoute
   '/settings': typeof SettingsRoute
   '/story': typeof StoryRoute
+  '/storyboard': typeof StoryboardRoute
   '/universe': typeof UniverseRoute
 }
 export interface FileRoutesById {
@@ -100,12 +116,14 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/analytics': typeof AnalyticsRoute
   '/assets': typeof AssetsRoute
+  '/audio': typeof AudioRoute
   '/director': typeof DirectorRoute
   '/production': typeof ProductionRoute
   '/projects': typeof ProjectsRoute
   '/publish': typeof PublishRoute
   '/settings': typeof SettingsRoute
   '/story': typeof StoryRoute
+  '/storyboard': typeof StoryboardRoute
   '/universe': typeof UniverseRoute
 }
 export interface FileRouteTypes {
@@ -114,36 +132,42 @@ export interface FileRouteTypes {
     | '/'
     | '/analytics'
     | '/assets'
+    | '/audio'
     | '/director'
     | '/production'
     | '/projects'
     | '/publish'
     | '/settings'
     | '/story'
+    | '/storyboard'
     | '/universe'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/analytics'
     | '/assets'
+    | '/audio'
     | '/director'
     | '/production'
     | '/projects'
     | '/publish'
     | '/settings'
     | '/story'
+    | '/storyboard'
     | '/universe'
   id:
     | '__root__'
     | '/'
     | '/analytics'
     | '/assets'
+    | '/audio'
     | '/director'
     | '/production'
     | '/projects'
     | '/publish'
     | '/settings'
     | '/story'
+    | '/storyboard'
     | '/universe'
   fileRoutesById: FileRoutesById
 }
@@ -151,12 +175,14 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AnalyticsRoute: typeof AnalyticsRoute
   AssetsRoute: typeof AssetsRoute
+  AudioRoute: typeof AudioRoute
   DirectorRoute: typeof DirectorRoute
   ProductionRoute: typeof ProductionRoute
   ProjectsRoute: typeof ProjectsRoute
   PublishRoute: typeof PublishRoute
   SettingsRoute: typeof SettingsRoute
   StoryRoute: typeof StoryRoute
+  StoryboardRoute: typeof StoryboardRoute
   UniverseRoute: typeof UniverseRoute
 }
 
@@ -167,6 +193,13 @@ declare module '@tanstack/react-router' {
       path: '/universe'
       fullPath: '/universe'
       preLoaderRoute: typeof UniverseRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/storyboard': {
+      id: '/storyboard'
+      path: '/storyboard'
+      fullPath: '/storyboard'
+      preLoaderRoute: typeof StoryboardRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/story': {
@@ -211,6 +244,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DirectorRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/audio': {
+      id: '/audio'
+      path: '/audio'
+      fullPath: '/audio'
+      preLoaderRoute: typeof AudioRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/assets': {
       id: '/assets'
       path: '/assets'
@@ -239,12 +279,14 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AnalyticsRoute: AnalyticsRoute,
   AssetsRoute: AssetsRoute,
+  AudioRoute: AudioRoute,
   DirectorRoute: DirectorRoute,
   ProductionRoute: ProductionRoute,
   ProjectsRoute: ProjectsRoute,
   PublishRoute: PublishRoute,
   SettingsRoute: SettingsRoute,
   StoryRoute: StoryRoute,
+  StoryboardRoute: StoryboardRoute,
   UniverseRoute: UniverseRoute,
 }
 export const routeTree = rootRouteImport
