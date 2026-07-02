@@ -8,6 +8,7 @@ import {
   Users,
   LayoutGrid,
   AudioWaveform,
+  Film,
   Cpu,
   Rocket,
   BarChart3,
@@ -41,6 +42,7 @@ export const NAV_SECTIONS: NavSection[] = [
     label: "Produce",
     items: [
       { to: "/audio", label: "Audio Studio", icon: AudioWaveform },
+      { to: "/timeline", label: "Timeline", icon: Film },
       { to: "/production", label: "Pipeline", icon: Cpu },
     ],
   },

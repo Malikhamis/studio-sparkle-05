@@ -62,10 +62,18 @@ The persistent creative-OS layer every later module reads from.
 - AI Music selector
 - Smart SFX suggestions
 
-## Phase 10 — Timeline Editor
-- Multi-track (video, audio, music, voice, SFX, captions)
-- Trim, reorder, transitions, markers, undo/redo
-- Dynamic / karaoke / animated captions
+## ✅ Phase 10 — Timeline Editor
+- Multi-track timeline (video, voice, music, SFX, captions)
+- Clip CRUD: add, move, trim (drag handles), split at playhead, remove
+- Transitions: cut, crossfade, dissolve, wipe (video track)
+- Captions track with text editing + style presets (static, dynamic, karaoke, animated)
+- Markers: add/rename/reposition/remove with color flags
+- Track controls: mute, hide, lock per track
+- Transport bar: play/pause, skip to start/end, timecode display
+- Zoom control (pixels-per-second slider + buttons)
+- Undo/redo with 50-step history stack
+- Project selector + rename + delete
+- Auto-persists to IndexedDB
 
 ## Phase 11 — Render Queue
 - Queue UI: multi-render, pause/resume/retry, logs, notifications

@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as UniverseRouteImport } from './routes/universe'
+import { Route as TimelineRouteImport } from './routes/timeline'
 import { Route as StoryboardRouteImport } from './routes/storyboard'
 import { Route as StoryRouteImport } from './routes/story'
 import { Route as SettingsRouteImport } from './routes/settings'
@@ -26,6 +27,11 @@ import { Route as IndexRouteImport } from './routes/index'
 const UniverseRoute = UniverseRouteImport.update({
   id: '/universe',
   path: '/universe',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TimelineRoute = TimelineRouteImport.update({
+  id: '/timeline',
+  path: '/timeline',
   getParentRoute: () => rootRouteImport,
 } as any)
 const StoryboardRoute = StoryboardRouteImport.update({
@@ -102,6 +108,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof SettingsRoute
   '/story': typeof StoryRoute
   '/storyboard': typeof StoryboardRoute
+  '/timeline': typeof TimelineRoute
   '/universe': typeof UniverseRoute
 }
 export interface FileRoutesByTo {
@@ -117,6 +124,7 @@ export interface FileRoutesByTo {
   '/settings': typeof SettingsRoute
   '/story': typeof StoryRoute
   '/storyboard': typeof StoryboardRoute
+  '/timeline': typeof TimelineRoute
   '/universe': typeof UniverseRoute
 }
 export interface FileRoutesById {
@@ -133,6 +141,7 @@ export interface FileRoutesById {
   '/settings': typeof SettingsRoute
   '/story': typeof StoryRoute
   '/storyboard': typeof StoryboardRoute
+  '/timeline': typeof TimelineRoute
   '/universe': typeof UniverseRoute
 }
 export interface FileRouteTypes {
@@ -150,6 +159,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/story'
     | '/storyboard'
+    | '/timeline'
     | '/universe'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -165,6 +175,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/story'
     | '/storyboard'
+    | '/timeline'
     | '/universe'
   id:
     | '__root__'
@@ -180,6 +191,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/story'
     | '/storyboard'
+    | '/timeline'
     | '/universe'
   fileRoutesById: FileRoutesById
 }
@@ -196,6 +208,7 @@ export interface RootRouteChildren {
   SettingsRoute: typeof SettingsRoute
   StoryRoute: typeof StoryRoute
   StoryboardRoute: typeof StoryboardRoute
+  TimelineRoute: typeof TimelineRoute
   UniverseRoute: typeof UniverseRoute
 }
 
@@ -206,6 +219,13 @@ declare module '@tanstack/react-router' {
       path: '/universe'
       fullPath: '/universe'
       preLoaderRoute: typeof UniverseRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/timeline': {
+      id: '/timeline'
+      path: '/timeline'
+      fullPath: '/timeline'
+      preLoaderRoute: typeof TimelineRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/storyboard': {
@@ -308,6 +328,7 @@ const rootRouteChildren: RootRouteChildren = {
   SettingsRoute: SettingsRoute,
   StoryRoute: StoryRoute,
   StoryboardRoute: StoryboardRoute,
+  TimelineRoute: TimelineRoute,
   UniverseRoute: UniverseRoute,
 }
 export const routeTree = rootRouteImport
