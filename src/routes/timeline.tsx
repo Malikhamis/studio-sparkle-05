@@ -1,10 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useRef, useState, useEffect, useCallback } from "react";
-import {
-  Film, Plus, Trash2, Scissors, Undo2, Redo2, ZoomIn, ZoomOut,
-  Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, Eye, EyeOff,
-  Lock, Unlock, Flag, Music, Mic, Sparkles, Type, Video, X, Save,
-} from "lucide-react";
+import { Film, Plus, Trash2, Scissors, Undo2, Redo2, ZoomIn, ZoomOut, Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, Eye, EyeOff, Lock, Clock as Unlock, Flag, Music, Mic, Sparkles, Type, Video, X, Save } from "lucide-react";
 import {
   useTimelineStore,
   TRACK_COLORS,
