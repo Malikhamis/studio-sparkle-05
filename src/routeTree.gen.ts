@@ -14,6 +14,7 @@ import { Route as TimelineRouteImport } from './routes/timeline'
 import { Route as StoryboardRouteImport } from './routes/storyboard'
 import { Route as StoryRouteImport } from './routes/story'
 import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as RenderRouteImport } from './routes/render'
 import { Route as PublishRouteImport } from './routes/publish'
 import { Route as ProjectsRouteImport } from './routes/projects'
 import { Route as ProductionRouteImport } from './routes/production'
@@ -47,6 +48,11 @@ const StoryRoute = StoryRouteImport.update({
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RenderRoute = RenderRouteImport.update({
+  id: '/render',
+  path: '/render',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PublishRoute = PublishRouteImport.update({
@@ -105,6 +111,7 @@ export interface FileRoutesByFullPath {
   '/production': typeof ProductionRoute
   '/projects': typeof ProjectsRoute
   '/publish': typeof PublishRoute
+  '/render': typeof RenderRoute
   '/settings': typeof SettingsRoute
   '/story': typeof StoryRoute
   '/storyboard': typeof StoryboardRoute
@@ -121,6 +128,7 @@ export interface FileRoutesByTo {
   '/production': typeof ProductionRoute
   '/projects': typeof ProjectsRoute
   '/publish': typeof PublishRoute
+  '/render': typeof RenderRoute
   '/settings': typeof SettingsRoute
   '/story': typeof StoryRoute
   '/storyboard': typeof StoryboardRoute
@@ -138,6 +146,7 @@ export interface FileRoutesById {
   '/production': typeof ProductionRoute
   '/projects': typeof ProjectsRoute
   '/publish': typeof PublishRoute
+  '/render': typeof RenderRoute
   '/settings': typeof SettingsRoute
   '/story': typeof StoryRoute
   '/storyboard': typeof StoryboardRoute
@@ -156,6 +165,7 @@ export interface FileRouteTypes {
     | '/production'
     | '/projects'
     | '/publish'
+    | '/render'
     | '/settings'
     | '/story'
     | '/storyboard'
@@ -172,6 +182,7 @@ export interface FileRouteTypes {
     | '/production'
     | '/projects'
     | '/publish'
+    | '/render'
     | '/settings'
     | '/story'
     | '/storyboard'
@@ -188,6 +199,7 @@ export interface FileRouteTypes {
     | '/production'
     | '/projects'
     | '/publish'
+    | '/render'
     | '/settings'
     | '/story'
     | '/storyboard'
@@ -205,6 +217,7 @@ export interface RootRouteChildren {
   ProductionRoute: typeof ProductionRoute
   ProjectsRoute: typeof ProjectsRoute
   PublishRoute: typeof PublishRoute
+  RenderRoute: typeof RenderRoute
   SettingsRoute: typeof SettingsRoute
   StoryRoute: typeof StoryRoute
   StoryboardRoute: typeof StoryboardRoute
@@ -247,6 +260,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/render': {
+      id: '/render'
+      path: '/render'
+      fullPath: '/render'
+      preLoaderRoute: typeof RenderRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/publish': {
@@ -325,6 +345,7 @@ const rootRouteChildren: RootRouteChildren = {
   ProductionRoute: ProductionRoute,
   ProjectsRoute: ProjectsRoute,
   PublishRoute: PublishRoute,
+  RenderRoute: RenderRoute,
   SettingsRoute: SettingsRoute,
   StoryRoute: StoryRoute,
   StoryboardRoute: StoryboardRoute,
@@ -334,13 +355,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
