@@ -75,8 +75,13 @@ The persistent creative-OS layer every later module reads from.
 - Project selector + rename + delete
 - Auto-persists to IndexedDB
 
-## Phase 11 — Render Queue
-- Queue UI: multi-render, pause/resume/retry, logs, notifications
+## ✅ Phase 11 — Render Queue
+- Multi-job queue with priority-aware scheduling + concurrency control
+- Pause / resume / retry / cancel / remove per job
+- Live progress + ETA, expandable logs, error surfacing, auto-retry
+- Notifications (started / complete / failed) with unread badge
+- Queue settings: max concurrent, auto-retry, notify, default preset (res/fps/format/codec)
+- Persistent local state (IndexedDB)
 
 ## Phase 12 — Publish & Analytics
 - Publish to YouTube / TikTok / Instagram / Facebook / LinkedIn / X
