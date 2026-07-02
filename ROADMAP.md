@@ -35,11 +35,14 @@ The persistent creative-OS layer every later module reads from.
 - Hooks, CTAs, SEO, platform-specific rewrites
 - Script version history
 
-## Phase 6 — Character Studio & Consistency Engine
-- Generate characters from prompt / photo / sketch
-- Persistent character sheet (face, hair, outfit, height, style)
-- Character Library (cross-project)
-- Reference-image pinning for consistency
+## ✅ Phase 6 — Character Studio & Consistency Engine
+- Persistent character sheets (face, hair, outfit, height, build, voice, personality)
+- Character Library with search + style filter (cross-project)
+- Reference-image pinning with primary selection + kind tagging
+- Character color palette for costume/scene consistency
+- Universe linking + tag system
+- Duplicate, edit, delete CRUD
+- 8 visual styles (cinematic, comic, anime, pixar, watercolor, noir, retro, realistic)
 
 ## ✅ Phase 7 — miStory (Flagship)
 - Input modes: Script → Story · Image → Story · Idea → Story

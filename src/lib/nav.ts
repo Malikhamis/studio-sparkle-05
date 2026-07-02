@@ -5,6 +5,7 @@ import {
   Library,
   Globe2,
   BookOpen,
+  Users,
   LayoutGrid,
   AudioWaveform,
   Cpu,
@@ -50,6 +51,7 @@ export const NAV_SECTIONS: NavSection[] = [
       { to: "/projects", label: "Projects", icon: FolderKanban },
       { to: "/assets", label: "Assets", icon: Library },
       { to: "/universe", label: "miUniverse", icon: Globe2 },
+      { to: "/characters", label: "Characters", icon: Users },
     ],
   },
   {

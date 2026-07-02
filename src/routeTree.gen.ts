@@ -17,6 +17,7 @@ import { Route as PublishRouteImport } from './routes/publish'
 import { Route as ProjectsRouteImport } from './routes/projects'
 import { Route as ProductionRouteImport } from './routes/production'
 import { Route as DirectorRouteImport } from './routes/director'
+import { Route as CharactersRouteImport } from './routes/characters'
 import { Route as AudioRouteImport } from './routes/audio'
 import { Route as AssetsRouteImport } from './routes/assets'
 import { Route as AnalyticsRouteImport } from './routes/analytics'
@@ -62,6 +63,11 @@ const DirectorRoute = DirectorRouteImport.update({
   path: '/director',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CharactersRoute = CharactersRouteImport.update({
+  id: '/characters',
+  path: '/characters',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AudioRoute = AudioRouteImport.update({
   id: '/audio',
   path: '/audio',
@@ -88,6 +94,7 @@ export interface FileRoutesByFullPath {
   '/analytics': typeof AnalyticsRoute
   '/assets': typeof AssetsRoute
   '/audio': typeof AudioRoute
+  '/characters': typeof CharactersRoute
   '/director': typeof DirectorRoute
   '/production': typeof ProductionRoute
   '/projects': typeof ProjectsRoute
@@ -102,6 +109,7 @@ export interface FileRoutesByTo {
   '/analytics': typeof AnalyticsRoute
   '/assets': typeof AssetsRoute
   '/audio': typeof AudioRoute
+  '/characters': typeof CharactersRoute
   '/director': typeof DirectorRoute
   '/production': typeof ProductionRoute
   '/projects': typeof ProjectsRoute
@@ -117,6 +125,7 @@ export interface FileRoutesById {
   '/analytics': typeof AnalyticsRoute
   '/assets': typeof AssetsRoute
   '/audio': typeof AudioRoute
+  '/characters': typeof CharactersRoute
   '/director': typeof DirectorRoute
   '/production': typeof ProductionRoute
   '/projects': typeof ProjectsRoute
@@ -133,6 +142,7 @@ export interface FileRouteTypes {
     | '/analytics'
     | '/assets'
     | '/audio'
+    | '/characters'
     | '/director'
     | '/production'
     | '/projects'
@@ -147,6 +157,7 @@ export interface FileRouteTypes {
     | '/analytics'
     | '/assets'
     | '/audio'
+    | '/characters'
     | '/director'
     | '/production'
     | '/projects'
@@ -161,6 +172,7 @@ export interface FileRouteTypes {
     | '/analytics'
     | '/assets'
     | '/audio'
+    | '/characters'
     | '/director'
     | '/production'
     | '/projects'
@@ -176,6 +188,7 @@ export interface RootRouteChildren {
   AnalyticsRoute: typeof AnalyticsRoute
   AssetsRoute: typeof AssetsRoute
   AudioRoute: typeof AudioRoute
+  CharactersRoute: typeof CharactersRoute
   DirectorRoute: typeof DirectorRoute
   ProductionRoute: typeof ProductionRoute
   ProjectsRoute: typeof ProjectsRoute
@@ -244,6 +257,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DirectorRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/characters': {
+      id: '/characters'
+      path: '/characters'
+      fullPath: '/characters'
+      preLoaderRoute: typeof CharactersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/audio': {
       id: '/audio'
       path: '/audio'
@@ -280,6 +300,7 @@ const rootRouteChildren: RootRouteChildren = {
   AnalyticsRoute: AnalyticsRoute,
   AssetsRoute: AssetsRoute,
   AudioRoute: AudioRoute,
+  CharactersRoute: CharactersRoute,
   DirectorRoute: DirectorRoute,
   ProductionRoute: ProductionRoute,
   ProjectsRoute: ProjectsRoute,
