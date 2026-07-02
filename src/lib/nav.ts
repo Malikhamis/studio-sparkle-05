@@ -10,6 +10,7 @@ import {
   AudioWaveform,
   Film,
   Cpu,
+  Loader,
   Rocket,
   BarChart3,
   Settings,
