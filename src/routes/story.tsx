@@ -771,7 +771,7 @@ function NewSeriesButton({
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [logline, setLogline] = useState("");
-  const [template, setTemplate] = useState<StoryTemplate>("cinematic");
+  const [template, setTemplate] = useState<StoryTemplate>("motivational");
   const [style, setStyle] = useState<StoryStyle>("cinematic");
   const universes = useUniverseStore((s) => s.universes);
   const [universeId, setUniverseId] = useState<string>("");
