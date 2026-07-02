@@ -95,6 +95,7 @@ type RenderState = {
       | "updatedAt"
       | "retries"
       | "logs"
+      | "priority"
     > & { priority?: RenderPriority }
   ) => string;
   pause: (id: string) => void;
