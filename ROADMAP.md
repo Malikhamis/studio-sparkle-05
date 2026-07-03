@@ -28,12 +28,15 @@ The persistent creative-OS layer every later module reads from.
 - Brand kit (colors, fonts, logo, intro/outro, watermark, CTA)
 - Cross-project reuse
 
-## Phase 5 — miDirector AI Brain (real LLM)
-- Wire chat to Lovable AI Gateway (`google/gemini-3-flash-preview`)
-- Project- and universe-aware system prompt
-- Script generate / rewrite / expand / shorten
-- Hooks, CTAs, SEO, platform-specific rewrites
-- Script version history
+## ✅ Phase 5 — miDirector AI Brain (real LLM)
+- Multi-provider AI gateway: 29 providers (OpenAI, Anthropic, Gemini, Groq, OpenRouter, DeepSeek, Mistral, xAI, Together, Fireworks, Cerebras, Nebius, Hugging Face, NVIDIA NIM, and more)
+- Settings > AI Providers: add/remove keys, set default, search catalog, free-tier badges
+- Settings > Model Routing: per-phase provider/model assignment (intake, design, build, verify, security)
+- Supabase edge function `ai-gateway`: routes to OpenAI-compatible, Anthropic, and Gemini APIs
+- Client-side `callLLM()` helper with project/universe-aware system prompt builder
+- miDirector chat wired to real LLM with thinking indicator + error fallback to local heuristic
+- AI-powered blueprint generation (JSON scene synthesis from interview answers)
+- Graceful degradation: falls back to local heuristic if no provider connected or API fails
 
 ## ✅ Phase 6 — Character Studio & Consistency Engine
 - Persistent character sheets (face, hair, outfit, height, build, voice, personality)
