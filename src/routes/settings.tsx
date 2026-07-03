@@ -283,7 +283,7 @@ function AddProviderForm({
         />
       </div>
       <div className="grid max-h-[400px] grid-cols-1 gap-2 overflow-y-auto sm:grid-cols-2">
-        {filtered.map((p) => (
+        {available.map((p) => (
           <button
             key={p.id}
             onClick={() => setSelected(p.id)}
@@ -297,7 +297,7 @@ function AddProviderForm({
             {p.free && <Badge variant="secondary" className="text-[9px]">Free</Badge>}
           </button>
         ))}
-        {filtered.length === 0 && (
+        {available.length === 0 && (
           <div className="col-span-2 py-6 text-center text-[12px] text-text-dim">No providers match "{search}"</div>
         )}
       </div>
