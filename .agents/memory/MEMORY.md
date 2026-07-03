@@ -1,0 +1,1 @@
+- [Hooke v2 Phase 2 decisions](hooke-phase2.md) — platform architecture, No Placeholder Policy, branch and seed-data rules
