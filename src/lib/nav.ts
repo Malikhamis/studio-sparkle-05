@@ -10,7 +10,6 @@ import {
   AudioWaveform,
   Film,
   Cpu,
-  Loader,
   Rocket,
   BarChart3,
   Settings,
@@ -45,7 +44,6 @@ export const NAV_SECTIONS: NavSection[] = [
       { to: "/audio", label: "Audio Studio", icon: AudioWaveform },
       { to: "/timeline", label: "Timeline", icon: Film },
       { to: "/production", label: "Pipeline", icon: Cpu },
-      { to: "/render", label: "Render Queue", icon: Loader },
     ],
   },
   {

@@ -73,29 +73,19 @@ type BlueprintState = {
   conversations: Conversation[];
   activeId: string | null;
   hydrated: boolean;
-  /** true while waiting for the LLM to respond */
-  isThinking: boolean;
-  /** last AI error, if any */
-  aiError: string | null;
 
   startConversation: (opts: { preset: StrategyPreset; projectId?: string; title?: string }) => Conversation;
   setActive: (id: string | null) => void;
   deleteConversation: (id: string) => void;
 
-  /** Append a user reply to the active interview and advance the director (local heuristic). */
+  /** Append a user reply to the active interview and advance the director. */
   reply: (content: string) => void;
-
-  /** Append a user reply and get the next director question from the LLM. */
-  replyWithAI: (content: string) => Promise<void>;
 
   /** Move to a specific step (skip / back). */
   jumpToStep: (step: number) => void;
 
   /** Generate or regenerate the blueprint from current answers. */
   generateBlueprint: () => Blueprint | undefined;
-
-  /** Generate blueprint using the LLM for richer scene synthesis. */
-  generateBlueprintWithAI: () => Promise<Blueprint | undefined>;
 
   updateScene: (sceneId: string, patch: Partial<Omit<Scene, "id" | "number">>) => void;
   addScene: () => void;
@@ -322,8 +312,6 @@ export const useBlueprintStore = create<BlueprintState>()(
       conversations: [],
       activeId: null,
       hydrated: false,
-      isThinking: false,
-      aiError: null,
 
       startConversation: ({ preset, projectId, title }) => {
         const now = Date.now();
@@ -398,102 +386,6 @@ export const useBlueprintStore = create<BlueprintState>()(
         });
       },
 
-      replyWithAI: async (content) => {
-        const id = get().activeId;
-        if (!id) return;
-        const trimmed = content.trim();
-        if (!trimmed) return;
-
-        // Append user message immediately
-        set({
-          isThinking: true,
-          aiError: null,
-          conversations: get().conversations.map((c) => {
-            if (c.id !== id) return c;
-            const currentField = INTERVIEW_FIELDS[c.step]?.key;
-            const nextStep = c.step + 1;
-            const now = Date.now();
-            const userTurn: InterviewTurn = {
-              id: uid(),
-              role: "user",
-              content: trimmed,
-              at: now,
-              field: currentField,
-            };
-            const answers: InterviewAnswers = currentField
-              ? { ...c.answers, [currentField]: trimmed }
-              : c.answers;
-            return {
-              ...c,
-              answers,
-              step: nextStep,
-              turns: [...c.turns, userTurn],
-              updatedAt: now,
-            };
-          }),
-        });
-
-        try {
-          const { callLLM, buildDirectorSystemPrompt } = await import("@/lib/ai-gateway");
-          const conv = get().conversations.find((c) => c.id === id);
-          if (!conv) return;
-
-          const strategyName = STRATEGY_PRESETS.find((p) => p.id === conv.preset)?.name ?? conv.preset;
-          const systemPrompt = buildDirectorSystemPrompt({
-            strategy: strategyName,
-            projectTitle: conv.title,
-          });
-
-          const messages = [
-            { role: "system" as const, content: systemPrompt },
-            ...conv.turns
-              .filter((t) => t.role === "user" || t.role === "director")
-              .map((t) => ({
-                role: (t.role === "director" ? "assistant" : "user") as "user" | "assistant",
-                content: t.content,
-              })),
-          ];
-
-          const response = await callLLM(messages, {
-            phase: "intake",
-            temperature: 0.8,
-            maxTokens: 512,
-          });
-
-          set({
-            isThinking: false,
-            conversations: get().conversations.map((c) => {
-              if (c.id !== id) return c;
-              const directorTurn: InterviewTurn = {
-                id: uid(),
-                role: "director",
-                content: response.content,
-                at: Date.now(),
-              };
-              return { ...c, turns: [...c.turns, directorTurn], updatedAt: Date.now() };
-            }),
-          });
-        } catch (err) {
-          const msg = err instanceof Error ? err.message : "AI request failed";
-          set({
-            isThinking: false,
-            aiError: msg,
-            // Fall back to local heuristic so the interview still progresses
-            conversations: get().conversations.map((c) => {
-              if (c.id !== id) return c;
-              const nextStep = c.step;
-              const directorTurn: InterviewTurn = {
-                id: uid(),
-                role: "director",
-                content: directorReplyForStep(nextStep, c.preset),
-                at: Date.now(),
-              };
-              return { ...c, turns: [...c.turns, directorTurn], updatedAt: Date.now() };
-            }),
-          });
-        }
-      },
-
       jumpToStep: (step) => {
         const id = get().activeId;
         if (!id) return;
@@ -515,101 +407,6 @@ export const useBlueprintStore = create<BlueprintState>()(
           ),
         });
         return bp;
-      },
-
-      generateBlueprintWithAI: async () => {
-        const id = get().activeId;
-        const c = get().conversations.find((x) => x.id === id);
-        if (!c) return undefined;
-
-        // Start from the local blueprint as a base
-        const localBp = buildBlueprint(c);
-
-        set({ isThinking: true, aiError: null });
-
-        try {
-          const { callLLM, buildDirectorSystemPrompt } = await import("@/lib/ai-gateway");
-          const strategyName = STRATEGY_PRESETS.find((p) => p.id === c.preset)?.name ?? c.preset;
-
-          const systemPrompt = buildDirectorSystemPrompt({
-            strategy: strategyName,
-            projectTitle: c.title,
-            existingBlueprint: `${localBp.title} — ${localBp.logline}\n${localBp.scenes.map((s) => `Scene ${s.number}: ${s.heading} (${s.duration}s) — ${s.beat}`).join("\n")}`,
-          });
-
-          const userPrompt = `Based on the interview answers, generate a refined blueprint as JSON with this shape:
-{
-  "title": "string",
-  "logline": "string (1-2 sentences)",
-  "tone": "string (e.g. 'cinematic, tense')",
-  "scenes": [
-    { "heading": "string", "beat": "string (what happens)", "duration": number (seconds), "prompt": "string (visual generation prompt)" }
-  ]
-}
-Return ONLY valid JSON, no markdown fences.
-
-Interview answers:
-${JSON.stringify(c.answers, null, 2)}`;
-
-          const response = await callLLM(
-            [
-              { role: "system", content: systemPrompt },
-              { role: "user", content: userPrompt },
-            ],
-            { phase: "intake", temperature: 0.7, maxTokens: 2048 }
-          );
-
-          // Parse JSON from response
-          const jsonMatch = response.content.match(/\{[\s\S]*\}/);
-          if (jsonMatch) {
-            const parsed = JSON.parse(jsonMatch[0]);
-            const scenes: Scene[] = (parsed.scenes ?? []).map((s: { heading: string; beat: string; duration: number; prompt: string }, i: number) => ({
-              id: uid(),
-              number: i + 1,
-              heading: s.heading ?? `Scene ${i + 1}`,
-              beat: s.beat ?? "",
-              shot: localBp.scenes[0]?.shot ?? "medium",
-              duration: Math.max(1, s.duration ?? 6),
-              prompt: s.prompt ?? "",
-            }));
-
-            const bp: Blueprint = {
-              ...localBp,
-              title: parsed.title ?? localBp.title,
-              logline: parsed.logline ?? localBp.logline,
-              tone: parsed.tone ?? localBp.tone,
-              scenes: scenes.length > 0 ? scenes : localBp.scenes,
-              updatedAt: Date.now(),
-            };
-
-            set({
-              isThinking: false,
-              conversations: get().conversations.map((x) =>
-                x.id === c.id ? { ...x, blueprint: bp, updatedAt: Date.now() } : x
-              ),
-            });
-            return bp;
-          }
-
-          // JSON parse failed — fall back to local
-          set({
-            isThinking: false,
-            conversations: get().conversations.map((x) =>
-              x.id === c.id ? { ...x, blueprint: localBp, updatedAt: Date.now() } : x
-            ),
-          });
-          return localBp;
-        } catch (err) {
-          const msg = err instanceof Error ? err.message : "AI generation failed";
-          set({
-            isThinking: false,
-            aiError: msg,
-            conversations: get().conversations.map((x) =>
-              x.id === c.id ? { ...x, blueprint: localBp, updatedAt: Date.now() } : x
-            ),
-          });
-          return localBp;
-        }
       },
 
       updateScene: (sceneId, patch) => {

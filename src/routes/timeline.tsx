@@ -34,7 +34,7 @@ export const Route = createFileRoute("/timeline")({
   component: TimelinePage,
 });
 
-const TRACK_ICONS: Record<TrackKind, React.ComponentType<{ className?: string; style?: React.CSSProperties }>> = {
+const TRACK_ICONS: Record<TrackKind, React.ComponentType<{ className?: string }>> = {
   video: Video,
   voice: Mic,
   music: Music,
