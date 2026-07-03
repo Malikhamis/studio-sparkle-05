@@ -83,10 +83,13 @@ The persistent creative-OS layer every later module reads from.
 - Queue settings: max concurrent, auto-retry, notify, default preset (res/fps/format/codec)
 - Persistent local state (IndexedDB)
 
-## Phase 12 — Publish & Analytics
-- Publish to YouTube / TikTok / Instagram / Facebook / LinkedIn / X
-- Scheduling
-- Analytics: views, watch time, engagement, render stats
+## ✅ Phase 12 — Publish & Analytics
+- Multi-platform posting (YouTube, TikTok, Instagram, Facebook, LinkedIn, X)
+- Draft / schedule / publish-now flow with live upload progress + retry
+- Platform connections (connect/disconnect handles)
+- Analytics: views, watch time, likes, comments, shares KPIs
+- 14-day views + engagement trend, platform share, top posts
+- Render throughput panel (complete / running / failed, avg time)
 
 ## Phase 13 — Settings & Polish
 - AI providers, themes, account, storage, plugins, shortcuts
