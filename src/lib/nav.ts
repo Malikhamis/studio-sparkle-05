@@ -6,12 +6,9 @@ import {
   Globe2,
   BookOpen,
   Cpu,
-  Rocket,
-  BarChart3,
   Settings,
   type LucideIcon,
 } from "lucide-react";
-
 
 export type NavItem = {
   to: string;
@@ -25,6 +22,17 @@ export type NavSection = {
   items: NavItem[];
 };
 
+/**
+ * Navigation sections shown in the sidebar.
+ *
+ * Rule: only routes with real, production-grade implementations appear here.
+ * Routes that are not yet fully implemented are excluded — they have routes
+ * (so deep links work) but are not surfaced in navigation.
+ *
+ * Currently excluded (not yet implemented):
+ *   - /publish  — requires completed render pipeline
+ *   - /analytics — requires real production data
+ */
 export const NAV_SECTIONS: NavSection[] = [
   {
     label: "Create",
@@ -49,10 +57,8 @@ export const NAV_SECTIONS: NavSection[] = [
     ],
   },
   {
-    label: "Publish",
+    label: "Platform",
     items: [
-      { to: "/publish", label: "Publish", icon: Rocket },
-      { to: "/analytics", label: "Analytics", icon: BarChart3 },
       { to: "/settings", label: "Settings", icon: Settings },
     ],
   },
@@ -61,7 +67,6 @@ export const NAV_SECTIONS: NavSection[] = [
 export const ALL_NAV_ITEMS: NavItem[] = NAV_SECTIONS.flatMap((s) => s.items);
 
 export function findNavItem(pathname: string): NavItem | undefined {
-  // exact match first, then prefix
   return (
     ALL_NAV_ITEMS.find((i) => i.to === pathname) ??
     ALL_NAV_ITEMS.filter((i) => i.to !== "/").find((i) => pathname.startsWith(i.to))

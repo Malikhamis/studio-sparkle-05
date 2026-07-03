@@ -7,7 +7,8 @@ import {
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
+import { initializePlatform } from "@/lib/platform";
 
 import "@fontsource/inter/300.css";
 import "@fontsource/inter/400.css";
@@ -144,6 +145,15 @@ function RootComponent() {
 function AppShell() {
   const mobileNavOpen = useUIStore((s) => s.mobileNavOpen);
   const closeMobileNav = useUIStore((s) => s.closeMobileNav);
+  const platformInitialized = useRef(false);
+
+  useEffect(() => {
+    if (platformInitialized.current) return;
+    platformInitialized.current = true;
+    initializePlatform().catch((err) =>
+      console.error("[Hooke] Platform initialization failed:", err)
+    );
+  }, []);
 
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-void">

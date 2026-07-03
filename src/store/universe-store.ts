@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { idbStorage } from "@/lib/idb-storage";
+import { eventBus } from "@/lib/platform/event-bus";
 
 /**
  * miUniverse — the persistent creative-OS layer.
@@ -101,46 +102,6 @@ type State = {
   unlinkProject: (universeId: string, projectId: string) => void;
 };
 
-/* seed */
-const seed = (): Universe[] => {
-  const now = Date.now();
-  const u: Universe = {
-    id: uid(),
-    name: "The Dream Chasers",
-    logline: "A crew of misfits chase a vanished signal across a half-built world.",
-    genre: "Speculative drama",
-    era: "Near future",
-    entities: [
-      {
-        id: uid(), kind: "character", name: "Iris Vale",
-        summary: "Lead — radio engineer, 28, quiet defiance.",
-        details: { age: "28", hair: "Black, cropped", outfit: "Olive flight jacket, white tee", voice: "Low, measured" },
-        tags: ["lead"],
-        createdAt: now, updatedAt: now,
-      },
-      {
-        id: uid(), kind: "location", name: "The Listening Post",
-        summary: "Abandoned shortwave station on a wind-scoured ridge.",
-        details: { mood: "Hushed, luminous", time: "Blue hour", weather: "Constant wind" },
-        tags: ["recurring"],
-        createdAt: now, updatedAt: now,
-      },
-      {
-        id: uid(), kind: "lore", name: "The Carrier Hum",
-        summary: "A 12.3kHz tone no one transmits, heard only after midnight.",
-        details: { firstHeard: "Episode 1, cold open" },
-        tags: ["mystery"],
-        createdAt: now, updatedAt: now,
-      },
-    ],
-    brand: { ...defaultBrand(), colors: ["#0B0E13", "#E8E2D5", "#C76E3B"], cta: "Tune in →" },
-    linkedProjectIds: [],
-    createdAt: now,
-    updatedAt: now,
-  };
-  return [u];
-};
-
 export const useUniverseStore = create<State>()(
   persist(
     (set, get) => ({
@@ -161,6 +122,7 @@ export const useUniverseStore = create<State>()(
           updatedAt: now,
         };
         set({ universes: [u, ...get().universes], activeId: u.id });
+        eventBus.emit("universe:created", { universeId: u.id, name: u.name });
         return u;
       },
 
@@ -178,6 +140,7 @@ export const useUniverseStore = create<State>()(
             u.id === id ? { ...u, ...patch, updatedAt: Date.now() } : u,
           ),
         });
+        eventBus.emit("universe:updated", { universeId: id, fields: Object.keys(patch) });
       },
 
       setActive: (id) => set({ activeId: id }),
@@ -205,6 +168,10 @@ export const useUniverseStore = create<State>()(
               : u,
           ),
         });
+        eventBus.emit("universe:entity:updated", { universeId, entityId: entity.id, kind });
+        if (kind === "character") {
+          eventBus.emit("character:created", { characterId: entity.id, universeId, name: entity.name });
+        }
         return entity;
       },
 
@@ -222,6 +189,13 @@ export const useUniverseStore = create<State>()(
               : u,
           ),
         });
+        const entity = get().universes.find((u) => u.id === universeId)?.entities.find((e) => e.id === entityId);
+        if (entity) {
+          eventBus.emit("universe:entity:updated", { universeId, entityId, kind: entity.kind });
+          if (entity.kind === "character") {
+            eventBus.emit("character:updated", { characterId: entityId, universeId, fields: Object.keys(patch) });
+          }
+        }
       },
 
       removeEntity: (universeId, entityId) => {
@@ -259,13 +233,7 @@ export const useUniverseStore = create<State>()(
       storage: createJSONStorage(() => idbStorage),
       partialize: (s) => ({ universes: s.universes, activeId: s.activeId }),
       onRehydrateStorage: () => (state) => {
-        if (!state) return;
-        state.hydrated = true;
-        if (state.universes.length === 0) {
-          const seeded = seed();
-          state.universes = seeded;
-          state.activeId = seeded[0].id;
-        }
+        if (state) state.hydrated = true;
       },
     },
   ),

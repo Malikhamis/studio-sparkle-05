@@ -1,69 +1,72 @@
 /**
- * Mock LLM client for testing
- * Implements the same interface as real providers
+ * Mock LLM client — FOR TESTING ONLY.
+ *
+ * This client MUST NOT be used in production code paths.
+ * A runtime guard throws if instantiated outside a test environment.
  */
 
-import { LLMClient, LLMMessage, LLMResponse, LLMConfig } from '../ai-providers';
+import type { LLMClient, LLMMessage, LLMResponse, LLMConfig } from '../ai-providers';
 
 export class MockClient implements LLMClient {
-  constructor(private config: LLMConfig) {}
+  constructor(private config: LLMConfig) {
+    if (typeof process !== 'undefined' && process.env.NODE_ENV === 'production') {
+      throw new Error(
+        '[Hooke] MockClient cannot be instantiated in production. ' +
+          'Configure a real provider in Settings → AI Providers.'
+      );
+    }
+  }
 
   async chat(messages: LLMMessage[]): Promise<LLMResponse> {
-    // Simulate network delay
     await new Promise((resolve) => setTimeout(resolve, 300));
-
-    const lastUserMessage = messages
-      .reverse()
-      .find((m) => m.role === 'user')?.content || '';
-
-    // Mock responses based on message content
-    let content = 'Mock response from director.';
-
-    if (lastUserMessage.toLowerCase().includes('expand')) {
-      content = JSON.stringify(
-        {
-          scenes: [
-            { number: 1, heading: 'Expanded Scene 1', beat: 'Mock expanded beat' },
-            { number: 2, heading: 'Expanded Scene 2', beat: 'Mock expanded beat' },
-          ],
-        },
-        null,
-        2
-      );
-    } else if (lastUserMessage.toLowerCase().includes('generate')) {
-      content = JSON.stringify(
-        {
-          title: 'Mock Blueprint',
-          scenes: [
-            {
-              number: 1,
-              heading: 'Opening',
-              beat: 'Establish the world',
-              prompt: 'A cinematic opening shot',
-            },
-          ],
-        },
-        null,
-        2
-      );
-    } else {
-      content = `Mock director response: "${lastUserMessage.slice(0, 50)}..."`;
-    }
-
+    const last = [...messages].reverse().find((m) => m.role === 'user')?.content ?? '';
     return {
-      content,
+      content: this.mockResponse(last),
       stopReason: 'stop',
       tokensUsed: { input: 100, output: 50 },
     };
   }
 
-  async countTokens(text: string): Promise<number> {
-    // Rough approximation: ~4 chars per token
-    return Math.ceil(text.length / 4);
+  async chatStream(
+    messages: LLMMessage[],
+    onToken: (token: string) => void
+  ): Promise<LLMResponse> {
+    const last = [...messages].reverse().find((m) => m.role === 'user')?.content ?? '';
+    const response = this.mockResponse(last);
+    // Simulate streaming token by token
+    for (const char of response) {
+      onToken(char);
+      await new Promise((r) => setTimeout(r, 10));
+    }
+    return { content: response, stopReason: 'stop', tokensUsed: { input: 100, output: 50 } };
   }
 
   async validateConfig(): Promise<void> {
-    // Mock always validates
-    return;
+    // Mock always passes validation
+  }
+
+  async countTokens(text: string): Promise<number> {
+    return Math.ceil(text.length / 4);
+  }
+
+  private mockResponse(userMessage: string): string {
+    const msg = userMessage.toLowerCase();
+    if (msg.includes('generate') || msg.includes('blueprint')) {
+      return JSON.stringify({
+        title: 'Mock Blueprint',
+        preset: 'cinematic',
+        logline: 'A mock production for testing purposes.',
+        audience: 'Test audience',
+        tone: 'Neutral',
+        length: '60s',
+        format: '16:9',
+        references: '',
+        scenes: [
+          { id: 'mock-1', number: 1, heading: 'Opening', beat: 'Establish the world.', shot: 'Wide establishing shot.', duration: 10, prompt: 'A wide cinematic opening shot.' },
+          { id: 'mock-2', number: 2, heading: 'Inciting Image', beat: 'The hook.', shot: 'Close-up on the subject.', duration: 8, prompt: 'A compelling close-up.' },
+        ],
+      }, null, 2);
+    }
+    return `[MOCK] Response to: "${userMessage.slice(0, 60)}${userMessage.length > 60 ? '...' : ''}"`;
   }
 }

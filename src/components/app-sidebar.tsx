@@ -58,36 +58,14 @@ export function AppSidebar() {
         ))}
       </nav>
 
-      {/* Status */}
-      <div className="m-1.5 rounded-[10px] border border-white/[0.06] bg-surface p-3">
-        <StatusRow color="green" label="Ollama" value="qwen2.5:7b" />
-        <StatusRow color="green" label="ComfyUI" value=":8188" />
-        <StatusRow color="yellow" label="GPU" value="68%" />
+      {/* Platform info */}
+      <div className="m-1.5 rounded-[10px] border border-white/[0.06] bg-surface px-3 py-2">
+        <div className="flex items-center gap-2 text-[11px] text-text-dim">
+          <span className="h-[6px] w-[6px] rounded-full bg-mint shadow-[0_0_5px_var(--accent-mint)]" />
+          <span className="flex-1">Local-first</span>
+          <span className="text-text-tertiary">v2</span>
+        </div>
       </div>
     </aside>
-  );
-}
-
-function StatusRow({
-  color,
-  label,
-  value,
-}: {
-  color: "green" | "yellow" | "red";
-  label: string;
-  value: string;
-}) {
-  const dot =
-    color === "green"
-      ? "bg-mint shadow-[0_0_6px_var(--accent-mint)]"
-      : color === "yellow"
-        ? "bg-gold"
-        : "bg-[#FF5370]";
-  return (
-    <div className="mb-1 flex items-center gap-2 text-[12px] text-text-secondary last:mb-0">
-      <span className={`h-[7px] w-[7px] shrink-0 rounded-full ${dot}`} />
-      <span className="flex-1">{label}</span>
-      <span className="text-[11px] font-medium text-text-primary">{value}</span>
-    </div>
   );
 }

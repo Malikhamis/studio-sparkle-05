@@ -1,6 +1,8 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { idbStorage } from "@/lib/idb-storage";
+import { eventBus } from "@/lib/platform/event-bus";
+import { projectGraph } from "@/lib/platform/project-graph";
 
 export type ProjectStatus = "draft" | "active" | "rendering" | "published" | "archived";
 
@@ -40,52 +42,6 @@ type ProjectState = {
 const uid = () =>
   globalThis.crypto?.randomUUID?.() ?? `p_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
 
-const seed = (): Project[] => {
-  const now = Date.now();
-  return [
-    {
-      id: uid(),
-      name: "Coastal Highway B-Roll",
-      description: "Drone-captured coastal scenery, cinematic color treatment.",
-      tags: ["b-roll", "drone", "cinematic"],
-      status: "rendering",
-      favorite: true,
-      createdAt: now - 86_400_000 * 6,
-      updatedAt: now - 3_600_000,
-    },
-    {
-      id: uid(),
-      name: "Founder Interview · Ep 03",
-      description: "Long-form interview, documentary edit style.",
-      tags: ["interview", "documentary"],
-      status: "active",
-      favorite: false,
-      createdAt: now - 86_400_000 * 12,
-      updatedAt: now - 86_400_000,
-    },
-    {
-      id: uid(),
-      name: "Product Reveal — Aurora",
-      description: "Hero launch piece. Diffusion-heavy product showcase.",
-      tags: ["launch", "diffusion", "hero"],
-      status: "draft",
-      favorite: true,
-      createdAt: now - 86_400_000 * 2,
-      updatedAt: now - 7_200_000,
-    },
-    {
-      id: uid(),
-      name: "Synthwave Music Video",
-      description: "Music video cut, rhythm-driven editing.",
-      tags: ["music", "kinetic"],
-      status: "published",
-      favorite: false,
-      createdAt: now - 86_400_000 * 21,
-      updatedAt: now - 86_400_000 * 4,
-    },
-  ];
-};
-
 export const useProjectStore = create<ProjectState>()(
   persist(
     (set, get) => ({
@@ -112,15 +68,24 @@ export const useProjectStore = create<ProjectState>()(
           updatedAt: now,
         };
         set({ projects: [project, ...get().projects] });
+        // Register in Project Graph and emit event
+        try {
+          projectGraph.registerProject(project.id, project.name);
+        } catch {
+          // Graph may not be loaded yet on first run; event still emitted
+          eventBus.emit("project:created", { projectId: project.id, name: project.name });
+        }
         return project;
       },
 
-      updateProject: (id, patch) =>
+      updateProject: (id, patch) => {
         set({
           projects: get().projects.map((p) =>
             p.id === id ? { ...p, ...patch, updatedAt: Date.now() } : p,
           ),
-        }),
+        });
+        eventBus.emit("project:updated", { projectId: id, fields: Object.keys(patch) });
+      },
 
       duplicateProject: (id) => {
         const original = get().projects.find((p) => p.id === id);
@@ -139,8 +104,10 @@ export const useProjectStore = create<ProjectState>()(
         return copy;
       },
 
-      archiveProject: (id) =>
-        get().updateProject(id, { status: "archived" }),
+      archiveProject: (id) => {
+        get().updateProject(id, { status: "archived" });
+        eventBus.emit("project:archived", { projectId: id });
+      },
 
       unarchiveProject: (id) =>
         get().updateProject(id, { status: "draft" }),
@@ -151,17 +118,16 @@ export const useProjectStore = create<ProjectState>()(
         get().updateProject(id, { favorite: !p.favorite });
       },
 
-      deleteProject: (id) =>
-        set({ projects: get().projects.filter((p) => p.id !== id) }),
+      deleteProject: (id) => {
+        set({ projects: get().projects.filter((p) => p.id !== id) });
+        eventBus.emit("project:deleted", { projectId: id });
+      },
     }),
     {
       name: "hooke:projects",
       storage: createJSONStorage(() => idbStorage),
       partialize: (s) => ({ projects: s.projects, sort: s.sort, showArchived: s.showArchived }),
       onRehydrateStorage: () => (state) => {
-        if (state && state.projects.length === 0) {
-          state.projects = seed();
-        }
         if (state) state.hydrated = true;
       },
     },
