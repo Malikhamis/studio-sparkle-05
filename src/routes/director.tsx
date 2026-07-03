@@ -13,6 +13,7 @@ import {
   PlusCircle,
   X,
   MessageSquare,
+  Loader2,
 } from "lucide-react";
 import {
   useBlueprintStore,
@@ -259,8 +260,11 @@ function HistoryList({
 /* ---------- Interview pane ---------- */
 function InterviewPane({ conversation }: { conversation: Conversation }) {
   const reply = useBlueprintStore((s) => s.reply);
+  const replyWithAI = useBlueprintStore((s) => s.replyWithAI);
+  const isThinking = useBlueprintStore((s) => s.isThinking);
+  const aiError = useBlueprintStore((s) => s.aiError);
   const jumpToStep = useBlueprintStore((s) => s.jumpToStep);
-  const generateBlueprint = useBlueprintStore((s) => s.generateBlueprint);
+  const generateBlueprintWithAI = useBlueprintStore((s) => s.generateBlueprintWithAI);
 
   const [draft, setDraft] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -270,16 +274,16 @@ function InterviewPane({ conversation }: { conversation: Conversation }) {
       top: scrollRef.current.scrollHeight,
       behavior: "smooth",
     });
-  }, [conversation.turns.length]);
+  }, [conversation.turns.length, isThinking]);
 
   const done = conversation.step >= INTERVIEW_TOTAL;
   const currentField = INTERVIEW_FIELDS[conversation.step];
 
-  const submit = (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (done) return;
-    reply(draft);
+    if (done || isThinking) return;
     setDraft("");
+    await replyWithAI(draft);
   };
 
   const progressPct = Math.min(
@@ -355,18 +359,35 @@ function InterviewPane({ conversation }: { conversation: Conversation }) {
             </div>
           </div>
         ))}
+
+        {isThinking && (
+          <div className="flex justify-start">
+            <div className="flex items-center gap-2 rounded-2xl border border-white/[0.06] bg-elevated px-3.5 py-2.5 text-[13px] text-text-dim">
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              miDirector is thinking…
+            </div>
+          </div>
+        )}
       </div>
+
+      {/* AI error banner */}
+      {aiError && (
+        <div className="mx-3 mt-2 rounded-md border border-[#FF5370]/30 bg-[#FF5370]/10 px-3 py-2 text-[11px] text-[#FF5370]">
+          {aiError}
+        </div>
+      )}
 
       {/* Composer / Generate */}
       <div className="border-t border-white/[0.06] p-3">
         {done ? (
           <button
-            onClick={() => generateBlueprint()}
-            className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-md text-[14px] font-semibold text-white"
+            onClick={() => generateBlueprintWithAI()}
+            disabled={isThinking}
+            className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-md text-[14px] font-semibold text-white disabled:opacity-50"
             style={{ background: "var(--gradient-iris)" }}
           >
-            <Sparkles className="h-4 w-4" />
-            {conversation.blueprint ? "Regenerate blueprint" : "Generate blueprint"}
+            <Sparkles className={`h-4 w-4 ${isThinking ? "animate-spin" : ""}`} />
+            {isThinking ? "Generating…" : conversation.blueprint ? "Regenerate blueprint" : "Generate blueprint"}
           </button>
         ) : (
           <form onSubmit={submit} className="flex flex-col gap-2">
@@ -410,12 +431,12 @@ function InterviewPane({ conversation }: { conversation: Conversation }) {
               </div>
               <button
                 type="submit"
-                disabled={!draft.trim()}
+                disabled={!draft.trim() || isThinking}
                 className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md text-white disabled:opacity-40"
                 style={{ background: "var(--gradient-iris)" }}
                 aria-label="Send"
               >
-                <Send className="h-4 w-4" />
+                {isThinking ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
               </button>
             </div>
           </form>
@@ -430,7 +451,8 @@ function BlueprintPane({ conversation }: { conversation: Conversation }) {
   const updateScene = useBlueprintStore((s) => s.updateScene);
   const addScene = useBlueprintStore((s) => s.addScene);
   const removeScene = useBlueprintStore((s) => s.removeScene);
-  const generateBlueprint = useBlueprintStore((s) => s.generateBlueprint);
+  const generateBlueprintWithAI = useBlueprintStore((s) => s.generateBlueprintWithAI);
+  const isThinking = useBlueprintStore((s) => s.isThinking);
 
   const bp = conversation.blueprint;
 
@@ -466,11 +488,12 @@ function BlueprintPane({ conversation }: { conversation: Conversation }) {
           </p>
         </div>
         <button
-          onClick={() => generateBlueprint()}
-          className="inline-flex h-9 items-center gap-1.5 rounded-md border border-iris/40 bg-iris/10 px-3 text-[12.5px] font-medium text-iris hover:bg-iris/20"
+          onClick={() => generateBlueprintWithAI()}
+          disabled={isThinking}
+          className="inline-flex h-9 items-center gap-1.5 rounded-md border border-iris/40 bg-iris/10 px-3 text-[12.5px] font-medium text-iris hover:bg-iris/20 disabled:opacity-50"
         >
-          <Sparkles className="h-3.5 w-3.5" />
-          Generate from current answers
+          <Sparkles className={`h-3.5 w-3.5 ${isThinking ? "animate-spin" : ""}`} />
+          {isThinking ? "Generating…" : "Generate from current answers"}
         </button>
       </div>
     );
@@ -491,12 +514,13 @@ function BlueprintPane({ conversation }: { conversation: Conversation }) {
         </div>
         <div className="flex items-center gap-1.5">
           <button
-            onClick={() => generateBlueprint()}
-            className="inline-flex h-8 items-center gap-1.5 rounded-md border border-white/10 px-2.5 text-[11.5px] text-text-secondary hover:bg-elevated hover:text-text-primary"
+            onClick={() => generateBlueprintWithAI()}
+            disabled={isThinking}
+            className="inline-flex h-8 items-center gap-1.5 rounded-md border border-white/10 px-2.5 text-[11.5px] text-text-secondary hover:bg-elevated hover:text-text-primary disabled:opacity-50"
             title="Regenerate"
           >
-            <Sparkles className="h-3 w-3" />
-            Regenerate
+            <Sparkles className={`h-3 w-3 ${isThinking ? "animate-spin" : ""}`} />
+            {isThinking ? "Generating…" : "Regenerate"}
           </button>
           <button
             onClick={downloadJson}
