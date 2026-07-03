@@ -95,13 +95,18 @@ class ProjectGraph {
     try {
       const stored = await idbGet<GraphState>(STORAGE_KEY);
       if (stored && stored.version === SCHEMA_VERSION) {
-        this.state = stored;
-      } else if (stored) {
-        // Future: run migrations
-        this.state = emptyState();
+        // Merge: persisted state is the base; in-memory writes made before
+        // load() resolved take precedence (they are newer user actions).
+        this.state = {
+          version: SCHEMA_VERSION,
+          nodes: { ...stored.nodes, ...this.state.nodes },
+          edges: { ...stored.edges, ...this.state.edges },
+        };
       }
+      // If no stored state (first run) or version mismatch, keep in-memory state.
     } catch {
-      this.state = emptyState();
+      // Keep whatever is in memory — better to work with stale in-memory state
+      // than to throw and block the user.
     }
     this.loaded = true;
   }

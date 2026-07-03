@@ -9,7 +9,12 @@ import type { LLMClient, LLMMessage, LLMResponse, LLMConfig } from '../ai-provid
 
 export class MockClient implements LLMClient {
   constructor(private config: LLMConfig) {
-    if (typeof process !== 'undefined' && process.env.NODE_ENV === 'production') {
+    // Use the Vite build-time constant (reliable in browser environments).
+    // Falls back to process.env check for Node.js test runners.
+    const isProd =
+      (typeof import.meta !== 'undefined' && (import.meta as { env?: { PROD?: boolean } }).env?.PROD === true) ||
+      (typeof process !== 'undefined' && process.env.NODE_ENV === 'production');
+    if (isProd) {
       throw new Error(
         '[Hooke] MockClient cannot be instantiated in production. ' +
           'Configure a real provider in Settings → AI Providers.'

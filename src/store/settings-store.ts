@@ -3,13 +3,11 @@
  *
  * Manages user settings, AI provider configuration, and preferences.
  *
- * API keys are stored encrypted — the store never holds plain-text keys
- * in its serialized form. Simple XOR obfuscation is used for local storage
- * (keys never leave the device and are user-owned; this is not a security
- * boundary against a server attacker, it's protection against casual inspection).
- *
- * For a production-grade deployment with a server component, keys would be
- * stored using the Web Crypto API with a session-derived key.
+ * API keys are stored obfuscated (XOR + base64) in IndexedDB. This is NOT
+ * cryptographic encryption — it prevents casual inspection of raw storage
+ * but does not protect against an attacker with access to the device.
+ * Keys are user-owned and never leave the device. A future enhancement would
+ * use the Web Crypto API with a session-derived key for stronger protection.
  */
 
 import { create } from 'zustand';
@@ -174,12 +172,24 @@ export const useSettingsStore = create<SettingsState>()(
 
       removeProvider: (id) => {
         const p = get().providers.find((x) => x.id === id);
-        set((s) => ({
-          providers: s.providers.filter((x) => x.id !== id),
-          defaultProviderId: s.defaultProviderId === id
-            ? s.providers.find((x) => x.id !== id)?.id ?? null
-            : s.defaultProviderId,
-        }));
+        set((s) => {
+          const remaining = s.providers.filter((x) => x.id !== id);
+          // Scrub any model routing rules that pointed at the removed provider
+          const newRouting: ModelRouting = {};
+          for (const [role, routedId] of Object.entries(s.modelRouting)) {
+            if (routedId !== id) {
+              newRouting[role as keyof ModelRouting] = routedId;
+            }
+          }
+          return {
+            providers: remaining,
+            defaultProviderId:
+              s.defaultProviderId === id
+                ? remaining[0]?.id ?? null
+                : s.defaultProviderId,
+            modelRouting: newRouting,
+          };
+        });
         if (p) {
           eventBus.emit('settings:provider:updated', {
             provider: p.provider,
@@ -220,9 +230,11 @@ export const useSettingsStore = create<SettingsState>()(
       },
 
       getActiveConfig: (role): ProviderConfig | undefined => {
-        const { modelRouting, defaultProviderId } = get();
+        const { modelRouting, defaultProviderId, providers } = get();
         const routedId = role ? modelRouting[role] : undefined;
-        const id = routedId ?? defaultProviderId;
+        // If a routing rule exists but the provider was removed, fall back to default.
+        const routedExists = routedId ? providers.some((p) => p.id === routedId) : false;
+        const id = routedExists ? routedId : defaultProviderId;
         if (!id) return undefined;
         return get().getProviderConfig(id);
       },

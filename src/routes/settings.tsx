@@ -282,7 +282,7 @@ function AddProviderDialog({
                 </button>
               </div>
               <p className="text-xs text-text-tertiary">
-                Stored encrypted on this device. Never sent to Hooke servers.
+                Stored on this device only. Never sent to Hooke servers.
               </p>
             </div>
           ) : (
@@ -392,8 +392,8 @@ function SettingsPage() {
             <div>
               <h2 className="font-medium text-text-primary">AI Providers</h2>
               <p className="text-sm text-text-tertiary">
-                Add your API keys to enable AI generation. Keys are encrypted and
-                stored only on this device.
+                Add your API keys to enable AI generation. Keys are stored on
+                this device only and never sent to Hooke servers.
               </p>
             </div>
             <Button
