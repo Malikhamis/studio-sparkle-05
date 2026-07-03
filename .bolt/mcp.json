@@ -1,0 +1,7 @@
+{
+  "mcpServers": {
+    "openrouter_gateway": {
+      "enabled": true
+    }
+  }
+}
