@@ -1,7 +1,7 @@
 {
   "mcpServers": {
     "openrouter_gateway": {
-      "enabled": true
+      "enabled": false
     }
   }
 }
