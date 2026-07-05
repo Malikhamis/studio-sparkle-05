@@ -450,12 +450,16 @@ function InterviewPane({ conversation }: { conversation: Conversation }) {
               </div>
               <button
                 type="submit"
-                disabled={!draft.trim()}
+                disabled={!draft.trim() || directorTyping || generating}
                 className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md text-white disabled:opacity-40"
                 style={{ background: "var(--gradient-iris)" }}
                 aria-label="Send"
               >
-                <Send className="h-4 w-4" />
+                {directorTyping ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Send className="h-4 w-4" />
+                )}
               </button>
             </div>
           </form>

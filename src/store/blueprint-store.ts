@@ -480,6 +480,10 @@ export const useBlueprintStore = create<BlueprintState>()(
         const trimmed = content.trim();
         if (!trimmed) return;
 
+        // Concurrency guard: reject new replies while a director response or
+        // blueprint generation is in flight to prevent out-of-order state.
+        if (get().directorTyping || get().generating) return;
+
         // Find the active conversation
         const c = get().conversations.find((x) => x.id === id);
         if (!c) return;
@@ -635,6 +639,8 @@ export const useBlueprintStore = create<BlueprintState>()(
         const providerConfig = useSettingsStore.getState().getActiveConfig("blueprintGeneration");
 
         let bp: Blueprint;
+        // Track whether we fell back so we can preserve the error message for the UI.
+        let fallbackError: string | null = null;
         const operation = opId();
 
         if (!providerConfig) {
@@ -660,6 +666,9 @@ export const useBlueprintStore = create<BlueprintState>()(
 
             const parsed = parseLLMBlueprint(response.content, c);
             if (!parsed) {
+              // LLM replied but JSON was malformed — fall back, surface message
+              fallbackError =
+                "LLM returned unparseable JSON — local synthesis used instead. Check the browser console for details.";
               console.warn("[miDirector] Falling back to local synthesis after LLM parse failure.");
               bp = buildBlueprintLocal(c);
             } else {
@@ -673,23 +682,26 @@ export const useBlueprintStore = create<BlueprintState>()(
               tokensUsed: response.tokensUsed,
             });
           } catch (err) {
+            // Network / auth / timeout error — fall back, surface message
+            fallbackError = String(err);
             console.error("[miDirector] Blueprint LLM call failed:", err);
             eventBus.emit("ai:generation:failed", {
               operationId: operation,
               agent: "director",
               projectId: c.projectId,
-              error: String(err),
+              error: fallbackError,
               retryable: true,
             });
-            set({ generating: false, generationError: String(err) });
             // Fall back to local synthesis so the user isn't left with nothing
             bp = buildBlueprintLocal(c);
           }
         }
 
+        // Commit blueprint to store. Preserve fallbackError so the UI can
+        // show "Generation failed — local fallback used" without clearing it.
         set({
           generating: false,
-          generationError: null,
+          generationError: fallbackError,
           conversations: get().conversations.map((x) =>
             x.id === c.id ? { ...x, blueprint: bp, updatedAt: Date.now() } : x,
           ),
