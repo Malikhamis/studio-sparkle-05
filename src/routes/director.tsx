@@ -13,6 +13,7 @@ import {
   PlusCircle,
   X,
   MessageSquare,
+  Loader2,
 } from "lucide-react";
 import {
   useBlueprintStore,
@@ -261,6 +262,8 @@ function InterviewPane({ conversation }: { conversation: Conversation }) {
   const reply = useBlueprintStore((s) => s.reply);
   const jumpToStep = useBlueprintStore((s) => s.jumpToStep);
   const generateBlueprint = useBlueprintStore((s) => s.generateBlueprint);
+  const directorTyping = useBlueprintStore((s) => s.directorTyping);
+  const generating = useBlueprintStore((s) => s.generating);
 
   const [draft, setDraft] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -344,29 +347,66 @@ function InterviewPane({ conversation }: { conversation: Conversation }) {
                 t.role === "user"
                   ? "text-white"
                   : "border border-white/[0.06] bg-elevated text-text-primary"
-              }`}
+              } ${t.ephemeral ? "opacity-50" : ""}`}
               style={
                 t.role === "user"
                   ? { background: "var(--gradient-iris)" }
                   : undefined
               }
             >
-              {t.content}
+              {t.ephemeral ? (
+                <span className="flex gap-1 py-0.5">
+                  {[0, 1, 2].map((i) => (
+                    <span
+                      key={i}
+                      className="h-1.5 w-1.5 animate-bounce rounded-full bg-text-dim"
+                      style={{ animationDelay: `${i * 160}ms` }}
+                    />
+                  ))}
+                </span>
+              ) : (
+                t.content
+              )}
             </div>
           </div>
         ))}
+        {directorTyping && !conversation.turns.some((t) => t.ephemeral) && (
+          <div className="flex justify-start">
+            <div className="rounded-2xl border border-white/[0.06] bg-elevated px-4 py-3">
+              <span className="flex gap-1 py-0.5">
+                {[0, 1, 2].map((i) => (
+                  <span
+                    key={i}
+                    className="h-1.5 w-1.5 animate-bounce rounded-full bg-text-dim"
+                    style={{ animationDelay: `${i * 160}ms` }}
+                  />
+                ))}
+              </span>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Composer / Generate */}
       <div className="border-t border-white/[0.06] p-3">
         {done ? (
           <button
-            onClick={() => generateBlueprint()}
-            className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-md text-[14px] font-semibold text-white"
+            onClick={() => void generateBlueprint()}
+            disabled={generating}
+            className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-md text-[14px] font-semibold text-white disabled:opacity-60"
             style={{ background: "var(--gradient-iris)" }}
           >
-            <Sparkles className="h-4 w-4" />
-            {conversation.blueprint ? "Regenerate blueprint" : "Generate blueprint"}
+            {generating ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Drafting blueprint…
+              </>
+            ) : (
+              <>
+                <Sparkles className="h-4 w-4" />
+                {conversation.blueprint ? "Regenerate blueprint" : "Generate blueprint"}
+              </>
+            )}
           </button>
         ) : (
           <form onSubmit={submit} className="flex flex-col gap-2">
@@ -431,6 +471,8 @@ function BlueprintPane({ conversation }: { conversation: Conversation }) {
   const addScene = useBlueprintStore((s) => s.addScene);
   const removeScene = useBlueprintStore((s) => s.removeScene);
   const generateBlueprint = useBlueprintStore((s) => s.generateBlueprint);
+  const generating = useBlueprintStore((s) => s.generating);
+  const generationError = useBlueprintStore((s) => s.generationError);
 
   const bp = conversation.blueprint;
 
@@ -466,12 +508,22 @@ function BlueprintPane({ conversation }: { conversation: Conversation }) {
           </p>
         </div>
         <button
-          onClick={() => generateBlueprint()}
-          className="inline-flex h-9 items-center gap-1.5 rounded-md border border-iris/40 bg-iris/10 px-3 text-[12.5px] font-medium text-iris hover:bg-iris/20"
+          onClick={() => void generateBlueprint()}
+          disabled={generating}
+          className="inline-flex h-9 items-center gap-1.5 rounded-md border border-iris/40 bg-iris/10 px-3 text-[12.5px] font-medium text-iris hover:bg-iris/20 disabled:opacity-60"
         >
-          <Sparkles className="h-3.5 w-3.5" />
-          Generate from current answers
+          {generating ? (
+            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+          ) : (
+            <Sparkles className="h-3.5 w-3.5" />
+          )}
+          {generating ? "Drafting…" : "Generate from current answers"}
         </button>
+        {generationError && (
+          <div className="mt-2 rounded-md border border-[#FF5370]/30 bg-[#FF5370]/10 px-3 py-2 text-[11.5px] text-[#FF5370]">
+            Generation failed — local fallback used. {generationError.slice(0, 120)}
+          </div>
+        )}
       </div>
     );
   }
@@ -491,12 +543,17 @@ function BlueprintPane({ conversation }: { conversation: Conversation }) {
         </div>
         <div className="flex items-center gap-1.5">
           <button
-            onClick={() => generateBlueprint()}
-            className="inline-flex h-8 items-center gap-1.5 rounded-md border border-white/10 px-2.5 text-[11.5px] text-text-secondary hover:bg-elevated hover:text-text-primary"
+            onClick={() => void generateBlueprint()}
+            disabled={generating}
+            className="inline-flex h-8 items-center gap-1.5 rounded-md border border-white/10 px-2.5 text-[11.5px] text-text-secondary hover:bg-elevated hover:text-text-primary disabled:opacity-60"
             title="Regenerate"
           >
-            <Sparkles className="h-3 w-3" />
-            Regenerate
+            {generating ? (
+              <Loader2 className="h-3 w-3 animate-spin" />
+            ) : (
+              <Sparkles className="h-3 w-3" />
+            )}
+            {generating ? "Generating…" : "Regenerate"}
           </button>
           <button
             onClick={downloadJson}

@@ -1,6 +1,26 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { Cpu, Clapperboard, Sparkles, Mic, Scissors, Rocket, CircleCheck as CheckCircle2, Clock, CircleAlert as AlertCircle, Loader as Loader2, ChevronRight, RefreshCw } from "lucide-react";
-import { ModulePlaceholder } from "@/components/module-placeholder";
+/**
+ * Production Pipeline
+ *
+ * Shows the blueprint → capture → diffusion → audio → edit → publish pipeline.
+ * The blueprint stage connects to the real miDirector blueprint store.
+ * All other stages are pending until their engines are wired up — no fake
+ * progress bars or pretend-running states.
+ */
+
+import { createFileRoute, Link } from "@tanstack/react-router";
+import {
+  Cpu,
+  Clapperboard,
+  Sparkles,
+  Mic,
+  Scissors,
+  Rocket,
+  CircleCheck as CheckCircle2,
+  CircleAlert as AlertCircle,
+  ChevronRight,
+  Info,
+} from "lucide-react";
+import { useBlueprintStore } from "@/store/blueprint-store";
 
 export const Route = createFileRoute("/production")({
   head: () => ({
@@ -21,78 +41,84 @@ export const Route = createFileRoute("/production")({
   component: ProductionPage,
 });
 
+type StageStatus = "pending" | "ready" | "complete" | "failed";
+
 type PipelineStage = {
   id: string;
   label: string;
   icon: React.ElementType;
   description: string;
-  status: "pending" | "running" | "complete" | "failed";
-  progress?: number;
-  items?: { label: string; status: string }[];
+  status: StageStatus;
+  detail?: string;
 };
 
-const STAGES: PipelineStage[] = [
-  {
-    id: "blueprint",
-    label: "Blueprint",
-    icon: Clapperboard,
-    description: "Scene breakdown from miDirector",
-    status: "complete",
-    progress: 100,
-    items: [{ label: "8 scenes ready", status: "loaded" }],
-  },
-  {
-    id: "capture",
-    label: "Capture",
-    icon: Cpu,
-    description: "Live capture + import for reference",
-    status: "pending",
-  },
-  {
-    id: "diffusion",
-    label: "Diffusion",
-    icon: Sparkles,
-    description: "AI image/video generation per scene",
-    status: "running",
-    progress: 38,
-    items: [
-      { label: "Scene 01", status: "complete" },
-      { label: "Scene 02", status: "complete" },
-      { label: "Scene 03", status: "generating" },
-    ],
-  },
-  {
-    id: "audio",
-    label: "Audio",
-    icon: Mic,
-    description: "TTS narration, music, SFX",
-    status: "pending",
-  },
-  {
-    id: "edit",
-    label: "Edit",
-    icon: Scissors,
-    description: "Auto-assembly, timeline, cuts",
-    status: "pending",
-  },
-  {
-    id: "publish",
-    label: "Publish",
-    icon: Rocket,
-    description: "Render final, schedule, push",
-    status: "pending",
-  },
-];
-
 function ProductionPage() {
-  const activeIndex = STAGES.findIndex((s) => s.status === "running");
-  const overallProgress = Math.round(
-    STAGES.reduce((sum, s) => {
-      if (s.status === "complete") return sum + 100;
-      if (s.status === "running" && s.progress) return sum + s.progress;
-      return sum;
-    }, 0) / STAGES.length
-  );
+  const conversations = useBlueprintStore((s) => s.conversations);
+  const activeId = useBlueprintStore((s) => s.activeId);
+
+  // Use the active conversation's blueprint if it exists, else the most recent one.
+  const activeConv =
+    conversations.find((c) => c.id === activeId) ??
+    [...conversations].sort((a, b) => b.updatedAt - a.updatedAt)[0];
+
+  const blueprint = activeConv?.blueprint;
+  const hasBlueprint = !!blueprint;
+
+  const stages: PipelineStage[] = [
+    {
+      id: "blueprint",
+      label: "Blueprint",
+      icon: Clapperboard,
+      description: "Scene breakdown from miDirector",
+      status: hasBlueprint ? "complete" : "pending",
+      detail: hasBlueprint
+        ? `${blueprint.scenes.length} scene${blueprint.scenes.length !== 1 ? "s" : ""} · "${blueprint.title}"`
+        : "Run a miDirector interview to generate a blueprint.",
+    },
+    {
+      id: "capture",
+      label: "Capture",
+      icon: Cpu,
+      description: "Live capture + import for reference footage",
+      status: "pending",
+      detail: "Not yet wired — upload reference footage via Assets.",
+    },
+    {
+      id: "diffusion",
+      label: "Diffusion",
+      icon: Sparkles,
+      description: "AI image / video generation per scene",
+      status: "pending",
+      detail: "Not yet wired — diffusion engine in roadmap.",
+    },
+    {
+      id: "audio",
+      label: "Audio",
+      icon: Mic,
+      description: "TTS narration, music, sound design",
+      status: "pending",
+      detail: "Not yet wired — audio engine in roadmap.",
+    },
+    {
+      id: "edit",
+      label: "Edit",
+      icon: Scissors,
+      description: "Auto-assembly, timeline, cuts",
+      status: "pending",
+      detail: "Not yet wired — editor engine in roadmap.",
+    },
+    {
+      id: "publish",
+      label: "Publish",
+      icon: Rocket,
+      description: "Render final, schedule, distribute",
+      status: "pending",
+      detail: "Not yet wired — publish engine in roadmap.",
+    },
+  ];
+
+  const completeCount = stages.filter((s) => s.status === "complete").length;
+  const overallPct = Math.round((completeCount / stages.length) * 100);
 
   return (
     <div className="mx-auto flex w-full max-w-[1480px] flex-col gap-5">
@@ -112,47 +138,45 @@ function ProductionPage() {
             AI-driven workflow: blueprint → capture → diffusion → audio → edit → publish.
           </p>
         </div>
-        <div className="ml-auto flex items-center gap-2">
-          <button className="inline-flex h-9 items-center gap-1.5 rounded-md border border-white/10 bg-surface px-3 text-[12.5px] font-medium text-text-secondary transition-colors hover:bg-elevated hover:text-text-primary">
-            <RefreshCw className="h-3.5 w-3.5" />
-            Refresh
-          </button>
-          <button
-            className="inline-flex h-9 items-center gap-1.5 rounded-md px-3 text-[12.5px] font-semibold text-white"
-            style={{ background: "var(--gradient-iris)" }}
-          >
-            Start Pipeline
-          </button>
-        </div>
+        {!hasBlueprint && (
+          <div className="ml-auto">
+            <Link
+              to="/director"
+              className="inline-flex h-9 items-center gap-1.5 rounded-md px-3 text-[12.5px] font-semibold text-white"
+              style={{ background: "var(--gradient-iris)" }}
+            >
+              <Clapperboard className="h-3.5 w-3.5" />
+              Create Blueprint
+            </Link>
+          </div>
+        )}
       </header>
 
       {/* Overall progress */}
       <div className="hk-card p-4">
         <div className="flex items-center justify-between">
           <span className="text-[12px] font-medium text-text-secondary">Overall Progress</span>
-          <span className="text-[12px] font-semibold text-text-primary">{overallProgress}%</span>
+          <span className="text-[12px] font-semibold text-text-primary">{overallPct}%</span>
         </div>
         <div className="mt-2 h-2 overflow-hidden rounded-full bg-white/[0.06]">
           <div
             className="h-full rounded-full transition-all"
             style={{
-              width: `${overallProgress}%`,
+              width: `${overallPct}%`,
               background: "var(--gradient-brand)",
             }}
           />
+        </div>
+        <div className="mt-2 text-[11px] text-text-dim">
+          {completeCount} of {stages.length} stages ready
         </div>
       </div>
 
       {/* Pipeline stages */}
       <div className="hk-card overflow-hidden">
         <div className="divide-y divide-white/[0.06]">
-          {STAGES.map((stage, i) => (
-            <StageCard
-              key={stage.id}
-              stage={stage}
-              isPast={i < activeIndex}
-              isActive={i === activeIndex}
-            />
+          {stages.map((stage) => (
+            <StageCard key={stage.id} stage={stage} />
           ))}
         </div>
       </div>
@@ -160,15 +184,16 @@ function ProductionPage() {
       {/* Info banner */}
       <div className="rounded-lg border border-iris/30 bg-iris/10 p-4">
         <div className="flex items-start gap-3">
-          <Cpu className="mt-0.5 h-5 w-5 shrink-0 text-iris" />
+          <Info className="mt-0.5 h-5 w-5 shrink-0 text-iris" />
           <div>
             <h3 className="text-[13px] font-semibold text-text-primary">
               Automation-first, manual when needed
             </h3>
             <p className="mt-1 text-[12px] leading-relaxed text-text-secondary">
               The pipeline runs automatically from your miDirector blueprint. Each stage can be
-              paused or overridden manually — click any stage to open its advanced controls. This
-              replaces the old Capture / Diffusion / Audio / Editor standalone tools.
+              paused or overridden manually. Stages marked{" "}
+              <span className="text-text-primary font-medium">Pending</span> are on the
+              roadmap — they'll light up as they're wired to live engines.
             </p>
           </div>
         </div>
@@ -177,105 +202,53 @@ function ProductionPage() {
   );
 }
 
-function StageCard({
-  stage,
-  isPast,
-  isActive,
-}: {
-  stage: PipelineStage;
-  isPast: boolean;
-  isActive: boolean;
-}) {
+function StageCard({ stage }: { stage: PipelineStage }) {
   const Icon = stage.icon;
-  const statusColor =
-    stage.status === "complete"
-      ? "text-mint"
-      : stage.status === "running"
-        ? "text-iris"
-        : stage.status === "failed"
-          ? "text-[#FF5370]"
-          : "text-text-dim";
-
-  const bgStyle =
-    isActive && stage.status === "running"
-      ? { background: "linear-gradient(90deg, rgba(108,99,255,0.08), transparent)" }
-      : undefined;
+  const isComplete = stage.status === "complete";
+  const isFailed = stage.status === "failed";
 
   return (
-    <div className="flex items-start gap-4 p-4 transition-colors hover:bg-elevated/40" style={bgStyle}>
+    <div className="flex items-start gap-4 p-4 transition-colors hover:bg-elevated/40">
       <div className="flex items-center gap-3">
         <div
           className={`flex h-10 w-10 items-center justify-center rounded-lg ${
-            stage.status === "complete"
+            isComplete
               ? "bg-mint/15"
-              : stage.status === "running"
-                ? "bg-iris/15"
+              : isFailed
+                ? "bg-[#FF5370]/15"
                 : "bg-white/[0.04]"
           }`}
         >
-          {stage.status === "running" ? (
-            <Loader2 className="h-5 w-5 animate-spin text-iris" />
-          ) : stage.status === "complete" ? (
+          {isComplete ? (
             <CheckCircle2 className="h-5 w-5 text-mint" />
-          ) : stage.status === "failed" ? (
+          ) : isFailed ? (
             <AlertCircle className="h-5 w-5 text-[#FF5370]" />
           ) : (
-            <Icon className={`h-5 w-5 ${statusColor}`} />
+            <Icon className="h-5 w-5 text-text-dim" />
           )}
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
             <h3 className="text-[14px] font-semibold text-text-primary">{stage.label}</h3>
-            {stage.status === "complete" && (
+            {isComplete && (
               <span className="rounded-full bg-mint/15 px-2 py-0.5 text-[10px] font-medium text-mint">
-                Complete
+                Ready
               </span>
             )}
-            {stage.status === "running" && (
-              <span className="rounded-full bg-iris/15 px-2 py-0.5 text-[10px] font-medium text-iris">
-                Running
-              </span>
-            )}
-            {stage.status === "failed" && (
+            {isFailed && (
               <span className="rounded-full bg-[#FF5370]/15 px-2 py-0.5 text-[10px] font-medium text-[#FF5370]">
                 Failed
               </span>
             )}
+            {!isComplete && !isFailed && (
+              <span className="rounded-full bg-white/[0.06] px-2 py-0.5 text-[10px] font-medium text-text-dim">
+                Pending
+              </span>
+            )}
           </div>
           <p className="mt-0.5 text-[12px] text-text-secondary">{stage.description}</p>
-
-          {/* Progress bar for running stages */}
-          {stage.status === "running" && stage.progress !== undefined && (
-            <div className="mt-2">
-              <div className="flex items-center justify-between text-[10.5px] text-text-dim">
-                <span>{stage.items?.length ?? 0} items processing</span>
-                <span>{stage.progress}%</span>
-              </div>
-              <div className="mt-1 h-1 overflow-hidden rounded-full bg-white/[0.06]">
-                <div
-                  className="h-full rounded-full bg-iris transition-all"
-                  style={{ width: `${stage.progress}%` }}
-                />
-              </div>
-            </div>
-          )}
-
-          {/* Items */}
-          {stage.items && stage.items.length > 0 && (
-            <div className="mt-2 flex flex-wrap gap-1.5">
-              {stage.items.map((item, idx) => (
-                <span
-                  key={idx}
-                  className="inline-flex items-center gap-1 rounded bg-base/60 px-2 py-0.5 text-[10.5px] text-text-secondary"
-                >
-                  {item.status === "complete" && <CheckCircle2 className="h-2.5 w-2.5 text-mint" />}
-                  {item.status === "generating" && (
-                    <Loader2 className="h-2.5 w-2.5 animate-spin text-iris" />
-                  )}
-                  {item.label}
-                </span>
-              ))}
-            </div>
+          {stage.detail && (
+            <p className="mt-1 text-[11.5px] text-text-dim">{stage.detail}</p>
           )}
         </div>
       </div>

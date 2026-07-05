@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { idbStorage } from "@/lib/idb-storage";
+import { eventBus } from "@/lib/platform/event-bus";
 
 export type AssetKind = "image" | "video" | "audio" | "document" | "other";
 
@@ -118,6 +119,9 @@ export const useAssetStore = create<AssetState>()(
           });
         }
         set({ assets: [...created, ...get().assets] });
+        for (const asset of created) {
+          eventBus.emit("asset:added", { assetId: asset.id, kind: asset.kind });
+        }
         return created;
       },
 
@@ -131,8 +135,10 @@ export const useAssetStore = create<AssetState>()(
           assets: get().assets.map((a) => (a.id === id ? { ...a, folder } : a)),
         }),
 
-      deleteAsset: (id) =>
-        set({ assets: get().assets.filter((a) => a.id !== id) }),
+      deleteAsset: (id) => {
+        set({ assets: get().assets.filter((a) => a.id !== id) });
+        eventBus.emit("asset:removed", { assetId: id });
+      },
     }),
     {
       name: "hooke:assets",

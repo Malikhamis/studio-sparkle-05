@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { idbStorage } from "@/lib/idb-storage";
+import { eventBus } from "@/lib/platform/event-bus";
 
 /**
  * miStory — the flagship storytelling module.
@@ -194,55 +195,6 @@ type State = {
   ) => void;
 };
 
-const seed = (): Series[] => {
-  const now = Date.now();
-  return [
-    {
-      id: uid(),
-      title: "The Signal",
-      logline: "A deep-space crew chases a whisper from a dead star.",
-      universeId: undefined,
-      template: "scifi",
-      style: "cinematic",
-      seasons: [
-        {
-          id: uid(),
-          number: 1,
-          title: "Season 1 — The Awakening",
-          logline: "The signal arrives. Everything changes.",
-          episodes: [
-            {
-              id: uid(),
-              number: 1,
-              title: "Pilot",
-              logline: "First contact — or a ghost?",
-              status: "scripted",
-              scenes: [],
-              duration: 0,
-              memory: {
-                characters: ["Iris Vale", "Commander Chen"],
-                locations: ["Listening Post", "Bridge"],
-                props: ["Signal decoder", "Old radio"],
-                emotions: ["wonder", "tension", "hope"],
-                timeOfDay: "blue hour",
-                weather: "clear, windy",
-                notes: ["Establish Iris as quiet, observant", "Signal first heard at 12.3kHz"],
-              },
-              createdAt: now,
-              updatedAt: now,
-            },
-          ],
-          createdAt: now,
-          updatedAt: now,
-        },
-      ],
-      tags: ["space", "mystery", "ensemble"],
-      createdAt: now,
-      updatedAt: now,
-    },
-  ];
-};
-
 export const useStoryStore = create<State>()(
   persist(
     (set, get) => ({
@@ -267,6 +219,7 @@ export const useStoryStore = create<State>()(
           updatedAt: now,
         };
         set({ series: [s, ...get().series], activeSeriesId: s.id });
+        eventBus.emit("story:created", { storyId: s.id });
         return s;
       },
 
@@ -651,11 +604,6 @@ export const useStoryStore = create<State>()(
       onRehydrateStorage: () => (state) => {
         if (!state) return;
         state.hydrated = true;
-        if (state.series.length === 0) {
-          const seeded = seed();
-          state.series = seeded;
-          state.activeSeriesId = seeded[0]?.id ?? null;
-        }
       },
     }
   )
